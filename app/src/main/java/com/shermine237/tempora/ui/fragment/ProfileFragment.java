@@ -12,20 +12,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.FragmentProfileBinding;
 import com.shermine237.tempora.model.UserProfile;
+import com.shermine237.tempora.ui.adapter.CategoryAdapter;
 import com.shermine237.tempora.viewmodel.UserProfileViewModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment implements CategoryAdapter.CategoryListener {
 
     private FragmentProfileBinding binding;
     private UserProfileViewModel userProfileViewModel;
     private UserProfile currentProfile;
+    private CategoryAdapter categoryAdapter;
 
     // Tableaux pour les heures
     private final String[] hours = new String[24];
@@ -55,12 +59,20 @@ public class ProfileFragment extends Fragment {
         // Configurer les checkboxes des jours
         setupDayCheckboxes();
         
+        // Configurer le RecyclerView des catégories
+        setupCategoriesRecyclerView();
+        
         // Observer les données du profil
         observeProfileData();
         
         // Configurer le bouton de sauvegarde
         binding.buttonSaveProfile.setOnClickListener(v -> {
             saveProfile();
+        });
+        
+        // Configurer le bouton d'ajout de catégorie
+        binding.buttonAddCategory.setOnClickListener(v -> {
+            addCategory();
         });
     }
 
@@ -81,6 +93,12 @@ public class ProfileFragment extends Fragment {
         dayCheckboxes[4] = binding.checkboxThursday;
         dayCheckboxes[5] = binding.checkboxFriday;
         dayCheckboxes[6] = binding.checkboxSaturday;
+    }
+
+    private void setupCategoriesRecyclerView() {
+        categoryAdapter = new CategoryAdapter(new ArrayList<>(), this, requireContext());
+        binding.recyclerCategories.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerCategories.setAdapter(categoryAdapter);
     }
 
     private void observeProfileData() {
@@ -111,6 +129,72 @@ public class ProfileFragment extends Fragment {
         binding.editShortBreak.setText(String.valueOf(profile.getShortBreakDuration()));
         binding.editLongBreak.setText(String.valueOf(profile.getLongBreakDuration()));
         binding.editSessionsBeforeLongBreak.setText(String.valueOf(profile.getWorkSessionsBeforeLongBreak()));
+        
+        // Catégories
+        categoryAdapter.updateCategories(profile.getCustomCategories());
+    }
+
+    private void addCategory() {
+        String newCategory = binding.editNewCategory.getText().toString().trim();
+        
+        if (newCategory.isEmpty()) {
+            Toast.makeText(requireContext(), "Veuillez entrer un nom de catégorie", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        if (currentProfile != null) {
+            List<String> categories = new ArrayList<>(currentProfile.getCustomCategories());
+            
+            // Vérifier si la catégorie existe déjà
+            if (categories.contains(newCategory)) {
+                Toast.makeText(requireContext(), "Cette catégorie existe déjà", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Ajouter la nouvelle catégorie
+            categories.add(newCategory);
+            currentProfile.setCustomCategories(categories);
+            
+            // Mettre à jour l'interface
+            categoryAdapter.updateCategories(categories);
+            
+            // Effacer le champ de texte
+            binding.editNewCategory.setText("");
+        }
+    }
+    
+    @Override
+    public void onCategoryEdit(int position, String newName) {
+        if (currentProfile != null) {
+            List<String> categories = new ArrayList<>(currentProfile.getCustomCategories());
+            
+            // Vérifier si la nouvelle catégorie existe déjà
+            if (categories.contains(newName) && !categories.get(position).equals(newName)) {
+                Toast.makeText(requireContext(), "Cette catégorie existe déjà", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Modifier la catégorie
+            categories.set(position, newName);
+            currentProfile.setCustomCategories(categories);
+            
+            // Mettre à jour l'interface
+            categoryAdapter.updateCategories(categories);
+        }
+    }
+    
+    @Override
+    public void onCategoryDelete(int position) {
+        if (currentProfile != null) {
+            List<String> categories = new ArrayList<>(currentProfile.getCustomCategories());
+            
+            // Supprimer la catégorie
+            categories.remove(position);
+            currentProfile.setCustomCategories(categories);
+            
+            // Mettre à jour l'interface
+            categoryAdapter.updateCategories(categories);
+        }
     }
 
     private void saveProfile() {
@@ -159,6 +243,9 @@ public class ProfileFragment extends Fragment {
             // Mettre à jour les préférences de pause
             userProfileViewModel.updateBreakPreferences(currentProfile, shortBreak, longBreak, sessions);
         }
+        
+        // Mettre à jour les catégories personnalisées
+        userProfileViewModel.updateCustomCategories(currentProfile, currentProfile.getCustomCategories());
         
         Toast.makeText(requireContext(), "Profil mis à jour avec succès", Toast.LENGTH_SHORT).show();
     }
