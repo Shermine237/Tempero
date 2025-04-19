@@ -1,4 +1,4 @@
-package com.shermine237.tempora;
+package com.shermine237.tempora.ui;
 
 import android.os.Bundle;
 
@@ -13,11 +13,15 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.ActivityMainBinding;
+import com.shermine237.tempora.model.UserProfile;
+import com.shermine237.tempora.repository.UserProfileRepository;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    private UserProfileRepository userProfileRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,17 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
+        
+        // Initialiser le profil utilisateur par défaut si nécessaire
+        initializeUserProfile();
+    }
+    
+    /**
+     * Initialise le profil utilisateur par défaut si aucun n'existe
+     */
+    private void initializeUserProfile() {
+        userProfileRepository = new UserProfileRepository(getApplication());
+        userProfileRepository.createDefaultProfileIfNotExists("Utilisateur", "utilisateur@example.com");
     }
     
     @Override

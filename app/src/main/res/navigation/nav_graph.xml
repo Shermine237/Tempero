@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_tasks">
+
+    <fragment
+        android:id="@+id/navigation_tasks"
+        android:name="com.shermine237.tempora.ui.fragment.TasksFragment"
+        android:label="Tâches"
+        tools:layout="@layout/fragment_tasks">
+        <action
+            android:id="@+id/action_navigation_tasks_to_task_detail"
+            app:destination="@id/navigation_task_detail" />
+        <action
+            android:id="@+id/action_navigation_tasks_to_add_task"
+            app:destination="@id/navigation_add_task" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_schedule"
+        android:name="com.shermine237.tempora.ui.fragment.ScheduleFragment"
+        android:label="Planning"
+        tools:layout="@layout/fragment_schedule">
+        <action
+            android:id="@+id/action_navigation_schedule_to_schedule_detail"
+            app:destination="@id/navigation_schedule_detail" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_stats"
+        android:name="com.shermine237.tempora.ui.fragment.StatsFragment"
+        android:label="Statistiques"
+        tools:layout="@layout/fragment_stats" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.shermine237.tempora.ui.fragment.ProfileFragment"
+        android:label="Profil"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/navigation_task_detail"
+        android:name="com.shermine237.tempora.ui.fragment.TaskDetailFragment"
+        android:label="Détails de la tâche"
+        tools:layout="@layout/fragment_task_detail">
+        <argument
+            android:name="taskId"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_add_task"
+        android:name="com.shermine237.tempora.ui.fragment.AddTaskFragment"
+        android:label="Ajouter une tâche"
+        tools:layout="@layout/fragment_add_task" />
+
+    <fragment
+        android:id="@+id/navigation_schedule_detail"
+        android:name="com.shermine237.tempora.ui.fragment.ScheduleDetailFragment"
+        android:label="Détails du planning"
+        tools:layout="@layout/fragment_schedule_detail">
+        <argument
+            android:name="scheduleId"
+            app:argType="integer" />
+    </fragment>
+
+</navigation>
