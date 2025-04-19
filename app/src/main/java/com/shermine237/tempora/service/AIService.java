@@ -126,8 +126,11 @@ public class AIService {
                 UserProfile userProfile = userProfileRepository.getUserProfile().getValue();
                 
                 if (userProfile == null) {
-                    Log.e(TAG, "Cannot generate schedule: user profile is null");
-                    return;
+                    Log.i(TAG, "Creating default user profile");
+                    // Créer un profil utilisateur par défaut
+                    userProfile = createDefaultUserProfile();
+                    // Enregistrer le profil utilisateur
+                    userProfileRepository.insert(userProfile);
                 }
                 
                 // Configurer le planificateur
@@ -157,6 +160,33 @@ public class AIService {
                 Log.e(TAG, "Error generating schedule", e);
             }
         });
+    }
+    
+    /**
+     * Crée un profil utilisateur par défaut
+     * @return Profil utilisateur par défaut
+     */
+    private UserProfile createDefaultUserProfile() {
+        UserProfile profile = new UserProfile("Utilisateur", "utilisateur@exemple.com");
+        
+        // Heures de travail par défaut (9h à 17h)
+        profile.setPreferredWorkStartHour(9);
+        profile.setPreferredWorkEndHour(17);
+        
+        // Jours de travail par défaut (lundi à vendredi)
+        List<Integer> workDays = new ArrayList<>();
+        workDays.add(Calendar.MONDAY);
+        workDays.add(Calendar.TUESDAY);
+        workDays.add(Calendar.WEDNESDAY);
+        workDays.add(Calendar.THURSDAY);
+        workDays.add(Calendar.FRIDAY);
+        profile.setWorkDays(workDays);
+        
+        // Durées de pause par défaut
+        profile.setShortBreakDuration(15); // 15 minutes
+        profile.setLongBreakDuration(60);  // 1 heure
+        
+        return profile;
     }
     
     /**
