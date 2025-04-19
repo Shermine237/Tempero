@@ -64,7 +64,6 @@ dependencies {
     implementation libs.gson
     
     // Machine Learning components
-    implementation libs.ml.model.interpreter
     implementation libs.tensorflow.lite
     
     // Testing

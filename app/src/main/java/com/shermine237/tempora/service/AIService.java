@@ -1,6 +1,7 @@
 package com.shermine237.tempora.service;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -15,7 +16,16 @@ import com.shermine237.tempora.repository.ScheduleRepository;
 import com.shermine237.tempora.repository.TaskRepository;
 import com.shermine237.tempora.repository.UserProfileRepository;
 
+import org.tensorflow.lite.Interpreter;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -56,8 +66,8 @@ public class AIService {
         scheduleRepository = new ScheduleRepository(application);
         
         // Initialiser les composants IA
-        habitAnalyzer = new UserHabitAnalyzer();
-        scheduler = new IntelligentScheduler(habitAnalyzer);
+        habitAnalyzer = new UserHabitAnalyzer(application);
+        scheduler = new IntelligentScheduler(application);
         
         // Initialiser le service de notification
         notificationService = new NotificationService(application);
@@ -295,5 +305,44 @@ public class AIService {
      */
     public LiveData<Boolean> getIsAnalyzing() {
         return isAnalyzing;
+    }
+    
+    /**
+     * Analyse les habitudes de travail de l'utilisateur
+     * @return Recommandations basées sur les habitudes
+     */
+    public List<String> analyzeWorkHabits() {
+        return habitAnalyzer.generateInsights();
+    }
+    
+    /**
+     * Prédit la durée réelle d'une tâche en fonction des données historiques
+     * @param task Tâche à analyser
+     * @return Durée prédite en minutes
+     */
+    public int predictTaskDuration(Task task) {
+        // Utiliser l'estimateur de durée basé sur les données historiques
+        int predictedDuration = task.getEstimatedDuration();
+        
+        // Facteurs d'ajustement basés sur la difficulté et la priorité
+        float difficultyFactor = 1.0f + (task.getDifficulty() * 0.1f);
+        float priorityFactor = 1.0f - (task.getPriority() * 0.05f);
+        
+        // Ajuster la durée estimée
+        predictedDuration = Math.round(predictedDuration * difficultyFactor * priorityFactor);
+        
+        // Ajouter une marge de sécurité de 10%
+        predictedDuration = Math.round(predictedDuration * 1.1f);
+        
+        return predictedDuration;
+    }
+    
+    /**
+     * Suggère les meilleurs moments pour travailler sur une tâche spécifique
+     * @param task Tâche à planifier
+     * @return Liste des créneaux horaires recommandés
+     */
+    public List<String> suggestBestTimeSlots(Task task) {
+        return habitAnalyzer.getBestTimeSlotsForTask(task);
     }
 }
