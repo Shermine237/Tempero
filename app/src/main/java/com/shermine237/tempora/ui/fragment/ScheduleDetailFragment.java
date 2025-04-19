@@ -120,7 +120,7 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
             Bundle bundle = new Bundle();
             bundle.putInt("taskId", item.getTaskId());
             Navigation.findNavController(binding.getRoot())
-                    .navigate(com.shermine237.tempora.R.id.action_navigation_schedule_detail_to_navigation_task_detail, bundle);
+                    .navigate(R.id.action_navigation_schedule_detail_to_navigation_task_detail, bundle);
         }
     }
 

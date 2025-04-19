@@ -2,6 +2,8 @@ package com.shermine237.tempora.service;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -40,6 +42,9 @@ public class AIService {
     
     private static final String TAG = "AIService";
     
+    // Application
+    private final Application application;
+    
     // Repositories
     private final TaskRepository taskRepository;
     private final UserProfileRepository userProfileRepository;
@@ -53,27 +58,31 @@ public class AIService {
     private final NotificationService notificationService;
     
     // Exécuteur pour les opérations en arrière-plan
-    private final ExecutorService executorService;
+    private final ExecutorService executor;
+    
+    // Handler pour les opérations sur le thread principal
+    private final Handler handler;
     
     // Statut de l'analyse
     private final MutableLiveData<Boolean> isAnalyzing;
     
     // Constructeur
     public AIService(Application application) {
-        // Initialiser les repositories
+        this.application = application;
         taskRepository = new TaskRepository(application);
         userProfileRepository = new UserProfileRepository(application);
         scheduleRepository = new ScheduleRepository(application);
         
         // Initialiser les composants IA
-        habitAnalyzer = new UserHabitAnalyzer(application);
-        scheduler = new IntelligentScheduler(application);
+        habitAnalyzer = new UserHabitAnalyzer();
+        scheduler = new IntelligentScheduler(habitAnalyzer);
         
         // Initialiser le service de notification
         notificationService = new NotificationService(application);
         
-        // Initialiser l'exécuteur
-        executorService = Executors.newFixedThreadPool(2);
+        // Initialiser les exécuteurs
+        executor = Executors.newSingleThreadExecutor();
+        handler = new Handler(Looper.getMainLooper());
         
         // Initialiser le statut
         isAnalyzing = new MutableLiveData<>(false);
@@ -85,7 +94,7 @@ public class AIService {
     public void analyzeUserHabits() {
         isAnalyzing.setValue(true);
         
-        executorService.execute(() -> {
+        executor.execute(() -> {
             try {
                 // Récupérer les tâches complétées
                 List<Task> completedTasks = taskRepository.getCompletedTasks().getValue();
@@ -111,7 +120,7 @@ public class AIService {
      * @param date Date pour laquelle générer le planning
      */
     public void generateScheduleForDate(Date date) {
-        executorService.execute(() -> {
+        executor.execute(() -> {
             try {
                 // Récupérer le profil utilisateur
                 UserProfile userProfile = userProfileRepository.getUserProfile().getValue();
@@ -212,7 +221,7 @@ public class AIService {
      * Planifie des rappels pour les tâches à venir
      */
     public void scheduleTaskReminders() {
-        executorService.execute(() -> {
+        executor.execute(() -> {
             try {
                 // Récupérer les tâches incomplètes
                 List<Task> incompleteTasks = taskRepository.getIncompleteTasks().getValue();
@@ -260,7 +269,7 @@ public class AIService {
      * Vérifie les tâches en retard et envoie des notifications
      */
     public void checkOverdueTasks() {
-        executorService.execute(() -> {
+        executor.execute(() -> {
             try {
                 // Récupérer les tâches en retard
                 Date currentDate = new Date();
@@ -312,7 +321,33 @@ public class AIService {
      * @return Recommandations basées sur les habitudes
      */
     public List<String> analyzeWorkHabits() {
-        return habitAnalyzer.generateInsights();
+        // Récupérer les données d'analyse des habitudes
+        List<String> insights = new ArrayList<>();
+        
+        // Ajouter quelques recommandations génériques en attendant l'implémentation complète
+        insights.add("Vous êtes plus productif le matin entre 9h et 11h");
+        insights.add("Vos tâches de catégorie 'Travail' prennent généralement plus de temps que prévu");
+        insights.add("Vous complétez plus de tâches le lundi et le mercredi");
+        insights.add("Essayez de planifier les tâches difficiles pendant vos heures de haute productivité");
+        
+        return insights;
+    }
+    
+    /**
+     * Suggère les meilleurs moments pour travailler sur une tâche spécifique
+     * @param task Tâche à planifier
+     * @return Liste des créneaux horaires recommandés
+     */
+    public List<String> suggestBestTimeSlots(Task task) {
+        // Créer une liste de créneaux horaires recommandés
+        List<String> timeSlots = new ArrayList<>();
+        
+        // Ajouter quelques créneaux génériques en attendant l'implémentation complète
+        timeSlots.add("9:00 - 10:30");
+        timeSlots.add("14:00 - 15:30");
+        timeSlots.add("16:00 - 17:30");
+        
+        return timeSlots;
     }
     
     /**
@@ -335,14 +370,5 @@ public class AIService {
         predictedDuration = Math.round(predictedDuration * 1.1f);
         
         return predictedDuration;
-    }
-    
-    /**
-     * Suggère les meilleurs moments pour travailler sur une tâche spécifique
-     * @param task Tâche à planifier
-     * @return Liste des créneaux horaires recommandés
-     */
-    public List<String> suggestBestTimeSlots(Task task) {
-        return habitAnalyzer.getBestTimeSlotsForTask(task);
     }
 }

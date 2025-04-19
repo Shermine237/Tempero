@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_tasks">
+
+    <fragment
+        android:id="@+id/navigation_tasks"
+        android:name="com.shermine237.tempora.ui.fragment.TasksFragment"
+        android:label="@string/title_tasks"
+        tools:layout="@layout/fragment_tasks">
+        <action
+            android:id="@+id/action_navigation_tasks_to_task_detail"
+            app:destination="@id/navigation_task_detail" />
+        <action
+            android:id="@+id/action_navigation_tasks_to_task_create"
+            app:destination="@id/navigation_task_create" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_schedule"
+        android:name="com.shermine237.tempora.ui.fragment.ScheduleFragment"
+        android:label="@string/title_schedule"
+        tools:layout="@layout/fragment_schedule">
+        <action
+            android:id="@+id/action_navigation_schedule_to_task_detail"
+            app:destination="@id/navigation_task_detail" />
+        <action
+            android:id="@+id/action_navigation_schedule_to_schedule_detail"
+            app:destination="@id/navigation_schedule_detail" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_statistics"
+        android:name="com.shermine237.tempora.ui.fragment.StatisticsFragment"
+        android:label="@string/title_statistics"
+        tools:layout="@layout/fragment_statistics" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.shermine237.tempora.ui.fragment.ProfileFragment"
+        android:label="@string/title_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/navigation_task_detail"
+        android:name="com.shermine237.tempora.ui.fragment.TaskDetailFragment"
+        android:label="@string/title_task_detail"
+        tools:layout="@layout/fragment_task_detail" />
+
+    <fragment
+        android:id="@+id/navigation_task_create"
+        android:name="com.shermine237.tempora.ui.fragment.TaskCreateFragment"
+        android:label="@string/title_task_create"
+        tools:layout="@layout/fragment_task_create" />
+
+    <fragment
+        android:id="@+id/navigation_schedule_detail"
+        android:name="com.shermine237.tempora.ui.fragment.ScheduleDetailFragment"
+        android:label="@string/title_schedule_detail"
+        tools:layout="@layout/fragment_schedule_detail">
+        <action
+            android:id="@+id/action_navigation_schedule_detail_to_navigation_task_detail"
+            app:destination="@id/navigation_task_detail" />
+    </fragment>
+
+</navigation>

@@ -126,6 +126,12 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
             bundle.putInt("taskId", item.getTaskId());
             Navigation.findNavController(binding.getRoot())
                     .navigate(R.id.action_navigation_schedule_to_task_detail, bundle);
+        } else {
+            // Si c'est un autre type d'élément (pause, repas), naviguer vers les détails du planning
+            Bundle bundle = new Bundle();
+            bundle.putLong("scheduleId", item.getScheduleId());
+            Navigation.findNavController(binding.getRoot())
+                    .navigate(R.id.action_navigation_schedule_to_schedule_detail, bundle);
         }
     }
 
