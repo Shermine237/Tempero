@@ -15,7 +15,7 @@
         android:layout_marginEnd="16dp"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:text="Statistiques de productivité"
+        android:text="@string/title_statistics"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -51,7 +51,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Résumé hebdomadaire"
+                        android:text="@string/weekly_summary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -99,7 +99,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Habitudes de travail"
+                        android:text="@string/work_habits"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -146,7 +146,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Conseils personnalisés"
+                        android:text="@string/personalized_tips"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -165,7 +165,7 @@
                 android:id="@+id/button_refresh_stats"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Rafraîchir les statistiques" />
+                android:text="@string/refresh_statistics" />
 
         </LinearLayout>
     </ScrollView>

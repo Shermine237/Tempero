@@ -22,4 +22,36 @@
     <string name="msg_schedule_generated">Planning généré</string>
     <string name="msg_no_tasks">Aucune tâche disponible</string>
     <string name="msg_empty_schedule">Aucun élément dans ce planning</string>
+    
+    <!-- Statistiques -->
+    <string name="weekly_summary">Résumé hebdomadaire</string>
+    <string name="work_habits">Habitudes de travail</string>
+    <string name="personalized_tips">Conseils personnalisés</string>
+    <string name="refresh_statistics">Rafraîchir les statistiques</string>
+    
+    <!-- Profil -->
+    <string name="informations_personnelles">Informations personnelles</string>
+    <string name="nom">Nom</string>
+    <string name="email">Email</string>
+    <string name="preferences_de_travail">Préférences de travail</string>
+    <string name="heures_de_travail">Heures de travail</string>
+    <string name="de">De</string>
+    <string name="a">à</string>
+    <string name="jours_de_travail">Jours de travail</string>
+    <string name="lundi">L</string>
+    <string name="mardi">M</string>
+    <string name="mercredi">M</string>
+    <string name="jeudi">J</string>
+    <string name="vendredi">V</string>
+    <string name="samedi">S</string>
+    <string name="dimanche">D</string>
+    <string name="preferences_de_pause">Préférences de pause</string>
+    <string name="duree_des_pauses_courtes_minutes">Durée des pauses courtes (minutes)</string>
+    <string name="duree_des_pauses_longues_minutes">Durée des pauses longues (minutes)</string>
+    <string name="sessions_avant_une_pause_longue">Sessions avant une pause longue</string>
+    <string name="categories_de_taches">Catégories de tâches</string>
+    <string name="gelez_vos_categories_personnalisees_pour_organiser_vos_taches">Gérez vos catégories personnalisées pour organiser vos tâches</string>
+    <string name="nouvelle_categorie">Nouvelle catégorie</string>
+    <string name="ajouter">Ajouter</string>
+    <string name="enregistrer_les_modifications">Enregistrer les modifications</string>
 </resources>

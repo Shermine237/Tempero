@@ -15,7 +15,7 @@
         android:layout_marginEnd="16dp"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:text="Planning du jour"
+        android:text="@string/title_schedule"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

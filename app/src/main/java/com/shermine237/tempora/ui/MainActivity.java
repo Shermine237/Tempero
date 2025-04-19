@@ -1,5 +1,7 @@
 package com.shermine237.tempora.ui;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +24,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Vérifier si l'onboarding a été effectué
+        if (!isOnboardingCompleted()) {
+            startOnboarding();
+            return;
+        }
+        
+        // Initialiser le profil utilisateur
+        initializeUserProfile();
+        
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         
@@ -43,17 +54,32 @@ public class MainActivity extends AppCompatActivity {
         // Configurer la barre d'action et la navigation inférieure
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
-        
-        // Initialiser le profil utilisateur par défaut si nécessaire
-        initializeUserProfile();
     }
     
     /**
-     * Initialise le profil utilisateur par défaut si aucun n'existe
+     * Vérifie si l'onboarding a été effectué
+     */
+    private boolean isOnboardingCompleted() {
+        SharedPreferences prefs = getSharedPreferences("TemporaPrefs", MODE_PRIVATE);
+        return prefs.getBoolean("onboarding_completed", false);
+    }
+    
+    /**
+     * Démarre l'activité d'onboarding
+     */
+    private void startOnboarding() {
+        Intent intent = new Intent(this, OnboardingActivity.class);
+        startActivity(intent);
+        finish();
+    }
+    
+    /**
+     * Initialise le profil utilisateur
      */
     private void initializeUserProfile() {
         userProfileRepository = new UserProfileRepository(getApplication());
-        userProfileRepository.createDefaultProfileIfNotExists("Utilisateur", "utilisateur@example.com");
+        
+        // Nous avons supprimé la partie concernant le thème car elle n'est pas encore implémentée
     }
     
     @Override

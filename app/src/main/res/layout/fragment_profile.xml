@@ -15,7 +15,7 @@
         android:layout_marginEnd="16dp"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:text="Mon profil"
+        android:text="@string/title_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -51,7 +51,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Informations personnelles"
+                        android:text="@string/informations_personnelles"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -59,7 +59,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="Nom">
+                        android:hint="@string/nom">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edit_name"
@@ -72,7 +72,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="Email">
+                        android:hint="@string/email">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edit_email"
@@ -100,7 +100,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Préférences de travail"
+                        android:text="@string/preferences_de_travail"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -108,7 +108,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Heures de travail" />
+                        android:text="@string/heures_de_travail" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -119,7 +119,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="De" />
+                            android:text="@string/de" />
 
                         <Spinner
                             android:id="@+id/spinner_start_hour"
@@ -132,7 +132,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="à" />
+                            android:text="@string/a" />
 
                         <Spinner
                             android:id="@+id/spinner_end_hour"
@@ -146,7 +146,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Jours de travail" />
+                        android:text="@string/jours_de_travail" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -159,49 +159,49 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="L" />
+                            android:text="@string/lundi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_tuesday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="M" />
+                            android:text="@string/mardi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_wednesday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="M" />
+                            android:text="@string/mercredi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_thursday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="J" />
+                            android:text="@string/jeudi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_friday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="V" />
+                            android:text="@string/vendredi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_saturday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="S" />
+                            android:text="@string/samedi" />
 
                         <CheckBox
                             android:id="@+id/checkbox_sunday"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="D" />
+                            android:text="@string/dimanche" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -223,7 +223,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Préférences de pause"
+                        android:text="@string/preferences_de_pause"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -231,7 +231,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="Durée des pauses courtes (minutes)">
+                        android:hint="@string/duree_des_pauses_courtes_minutes">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edit_short_break"
@@ -244,7 +244,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="Durée des pauses longues (minutes)">
+                        android:hint="@string/duree_des_pauses_longues_minutes">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edit_long_break"
@@ -257,7 +257,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:hint="Sessions avant une pause longue">
+                        android:hint="@string/sessions_avant_une_pause_longue">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edit_sessions_before_long_break"
@@ -285,7 +285,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Catégories de tâches"
+                        android:text="@string/categories_de_taches"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -293,7 +293,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Gérez vos catégories personnalisées pour organiser vos tâches" />
+                        android:text="@string/gelez_vos_categories_personnalisees_pour_organiser_vos_taches" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recycler_categories"
@@ -312,7 +312,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:hint="Nouvelle catégorie">
+                            android:hint="@string/nouvelle_categorie">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/edit_new_category"
@@ -326,7 +326,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="Ajouter" />
+                            android:text="@string/ajouter" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -335,7 +335,7 @@
                 android:id="@+id/button_save_profile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Enregistrer les modifications" />
+                android:text="@string/enregistrer_les_modifications" />
 
         </LinearLayout>
     </ScrollView>
