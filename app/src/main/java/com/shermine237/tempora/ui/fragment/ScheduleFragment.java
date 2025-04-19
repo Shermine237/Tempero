@@ -129,7 +129,8 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         } else {
             // Si c'est un autre type d'élément (pause, repas), naviguer vers les détails du planning
             Bundle bundle = new Bundle();
-            bundle.putLong("scheduleId", item.getScheduleId());
+            // Utiliser la date sélectionnée comme identifiant du planning
+            bundle.putLong("date", selectedDate.getTime());
             Navigation.findNavController(binding.getRoot())
                     .navigate(R.id.action_navigation_schedule_to_schedule_detail, bundle);
         }

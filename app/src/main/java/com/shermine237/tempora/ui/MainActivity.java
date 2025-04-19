@@ -2,20 +2,15 @@ package com.shermine237.tempora.ui;
 
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.ActivityMainBinding;
-import com.shermine237.tempora.model.UserProfile;
 import com.shermine237.tempora.repository.UserProfileRepository;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,26 +21,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         
-        // Configure les insets pour le mode edge-to-edge
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Configurer la Toolbar comme ActionBar
+        setSupportActionBar(binding.toolbar);
         
         // Configure la navigation
         BottomNavigationView navView = binding.bottomNavigation;
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_tasks, R.id.navigation_schedule, 
-                R.id.navigation_stats, R.id.navigation_profile)
+                R.id.navigation_statistics, R.id.navigation_profile)
                 .build();
         
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        // Obtenir le NavController à partir du NavHostFragment
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+        NavController navController = navHostFragment.getNavController();
+        
+        // Configurer la barre d'action et la navigation inférieure
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
         
@@ -63,7 +58,9 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+        NavController navController = navHostFragment.getNavController();
         return navController.navigateUp() || super.onSupportNavigateUp();
     }
 }

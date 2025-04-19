@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.FragmentScheduleDetailBinding;
 import com.shermine237.tempora.model.Schedule;
 import com.shermine237.tempora.model.ScheduleItem;

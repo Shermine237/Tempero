@@ -33,9 +33,9 @@
 
     <fragment
         android:id="@+id/navigation_statistics"
-        android:name="com.shermine237.tempora.ui.fragment.StatisticsFragment"
+        android:name="com.shermine237.tempora.ui.fragment.StatsFragment"
         android:label="@string/title_statistics"
-        tools:layout="@layout/fragment_statistics" />
+        tools:layout="@layout/fragment_stats" />
 
     <fragment
         android:id="@+id/navigation_profile"
@@ -51,9 +51,9 @@
 
     <fragment
         android:id="@+id/navigation_task_create"
-        android:name="com.shermine237.tempora.ui.fragment.TaskCreateFragment"
+        android:name="com.shermine237.tempora.ui.fragment.AddTaskFragment"
         android:label="@string/title_task_create"
-        tools:layout="@layout/fragment_task_create" />
+        tools:layout="@layout/fragment_add_task" />
 
     <fragment
         android:id="@+id/navigation_schedule_detail"
