@@ -55,7 +55,6 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         
         // Initialiser la date sélectionnée à aujourd'hui
         selectedDate = new Date();
-        updateDateDisplay();
         
         // Configurer le RecyclerView
         setupRecyclerView();
@@ -83,13 +82,9 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, dayOfMonth);
             selectedDate = calendar.getTime();
-            updateDateDisplay();
+            // Nous avons supprimé l'appel à updateDateDisplay() car le TextView a été supprimé
             loadScheduleForSelectedDate();
         });
-    }
-
-    private void updateDateDisplay() {
-        binding.textScheduleDate.setText("Planning du " + dateFormat.format(selectedDate));
     }
 
     private void observeScheduleData() {

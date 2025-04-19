@@ -20,7 +20,7 @@
     <string name="msg_task_saved">Tâche enregistrée</string>
     <string name="msg_task_deleted">Tâche supprimée</string>
     <string name="msg_schedule_generated">Planning généré</string>
-    <string name="msg_no_tasks">Aucune tâche disponible</string>
+    <string name="msg_no_tasks">Aucune tâche disponible.\nAppuyez sur + pour en ajouter une.</string>
     <string name="msg_empty_schedule">Aucun élément dans ce planning</string>
     
     <!-- Statistiques -->
@@ -54,4 +54,8 @@
     <string name="nouvelle_categorie">Nouvelle catégorie</string>
     <string name="ajouter">Ajouter</string>
     <string name="enregistrer_les_modifications">Enregistrer les modifications</string>
+    
+    <!-- Descriptions -->
+    <string name="ajouter_une_tache">Ajouter une tâche</string>
+    <string name="generer_un_planning">Générer un planning</string>
 </resources>
