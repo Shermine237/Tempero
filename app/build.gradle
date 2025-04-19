@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.shermine237.tempora'
-    compileSdk 35
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.shermine237.tempora"
         minSdk 24
-        targetSdk 35
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -23,51 +23,45 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
-    
     buildFeatures {
         viewBinding true
     }
 }
 
 dependencies {
-    implementation libs.appcompat
-    implementation libs.material
-    implementation libs.activity
-    implementation libs.constraintlayout
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.core.ktx)
     
     // Room components
-    implementation libs.room.runtime
-    implementation libs.androidx.navigation.fragment
-    implementation libs.androidx.navigation.ui
-    annotationProcessor libs.room.compiler
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
     
     // Lifecycle components
-    implementation libs.lifecycle.viewmodel
-    implementation libs.lifecycle.livedata
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.livedata)
     
     // UI components
-    implementation libs.recyclerview
-    implementation libs.cardview
-    implementation libs.preference
+    implementation(libs.androidx.recyclerview)
     
     // Navigation components
-    implementation libs.navigation.fragment
-    implementation libs.navigation.ui
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
     
     // WorkManager
-    implementation libs.work.runtime
+    implementation(libs.androidx.work.runtime)
     
     // JSON parsing
-    implementation libs.gson
+    implementation(libs.gson)
     
-    // Machine Learning components
-    implementation libs.tensorflow.lite
+    // Machine Learning
+    implementation(libs.tensorflow.lite)
     
-    // Testing
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
