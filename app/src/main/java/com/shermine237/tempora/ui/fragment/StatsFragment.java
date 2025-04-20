@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.shermine237.tempora.ai.UserHabitAnalyzer;
 import com.shermine237.tempora.databinding.FragmentStatsBinding;
 import com.shermine237.tempora.service.AIService;
 import com.shermine237.tempora.viewmodel.ScheduleViewModel;
@@ -25,7 +24,6 @@ public class StatsFragment extends Fragment {
     private TaskViewModel taskViewModel;
     private ScheduleViewModel scheduleViewModel;
     private AIService aiService;
-    private UserHabitAnalyzer habitAnalyzer;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,9 +39,8 @@ public class StatsFragment extends Fragment {
         taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         scheduleViewModel = new ViewModelProvider(this).get(ScheduleViewModel.class);
         
-        // Initialiser le service IA et l'analyseur d'habitudes
+        // Initialiser le service IA
         aiService = new AIService(requireActivity().getApplication());
-        habitAnalyzer = new UserHabitAnalyzer();
         
         // Observer les données
         observeTaskData();
@@ -103,66 +100,96 @@ public class StatsFragment extends Fragment {
     }
 
     private void updateHabitStats() {
-        // Récupérer les heures les plus productives
-        int[] productiveHours = habitAnalyzer.getMostProductiveHours();
-        if (productiveHours.length > 0) {
-            StringBuilder hoursText = new StringBuilder("Heures les plus productives: ");
-            for (int i = 0; i < Math.min(productiveHours.length, 3); i++) {
-                hoursText.append(productiveHours[i]).append("h");
-                if (i < Math.min(productiveHours.length, 3) - 1) {
-                    hoursText.append(", ");
+        // Utiliser le backend d'IA pour générer des statistiques et des recommandations
+        
+        // Récupérer les jours et heures productifs à partir du backend d'IA
+        try {
+            // Générer un conseil de productivité basé sur l'analyse des habitudes
+            String productivityTip = aiService.generateProductivityTip();
+            if (productivityTip != null && !productivityTip.isEmpty()) {
+                // Extraire les informations du conseil
+                if (productivityTip.contains("plus productif")) {
+                    // Exemple: "Vous êtes plus productif(ve) le mardi vers 10h."
+                    String[] parts = productivityTip.split(" ");
+                    
+                    // Extraire le jour
+                    int dayIndex = -1;
+                    for (int i = 0; i < parts.length; i++) {
+                        String part = parts[i].toLowerCase();
+                        if (part.equals("dimanche") || part.equals("lundi") || 
+                            part.equals("mardi") || part.equals("mercredi") || 
+                            part.equals("jeudi") || part.equals("vendredi") || 
+                            part.equals("samedi")) {
+                            dayIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (dayIndex >= 0) {
+                        binding.textProductiveDays.setText("Jour le plus productif: " + parts[dayIndex]);
+                    }
+                    
+                    // Extraire l'heure
+                    for (int i = 0; i < parts.length; i++) {
+                        if (parts[i].contains("h") && parts[i].length() <= 3) {
+                            String hourPart = parts[i].replace("h", "");
+                            try {
+                                int hour = Integer.parseInt(hourPart);
+                                binding.textProductiveHours.setText("Heure la plus productive: " + hour + "h");
+                                break;
+                            } catch (NumberFormatException e) {
+                                // Ignorer
+                            }
+                        }
+                    }
                 }
             }
-            binding.textProductiveHours.setText(hoursText.toString());
-        }
-        
-        // Récupérer les jours les plus productifs
-        int[] productiveDays = habitAnalyzer.getMostProductiveDays();
-        if (productiveDays.length > 0) {
-            String[] dayNames = {"dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"};
-            StringBuilder daysText = new StringBuilder("Jours les plus productifs: ");
-            for (int i = 0; i < Math.min(productiveDays.length, 3); i++) {
-                daysText.append(dayNames[productiveDays[i]]);
-                if (i < Math.min(productiveDays.length, 3) - 1) {
-                    daysText.append(", ");
+            
+            // Générer des recommandations pour les tâches fréquentes
+            String[] commonTasks = {"Réunion d'équipe", "Préparation de présentation", "Révisions"};
+            String[] categories = {"Travail", "Études", "Personnel"};
+            
+            StringBuilder efficientCategories = new StringBuilder("Catégories optimales: ");
+            for (int i = 0; i < Math.min(categories.length, 2); i++) {
+                String recommendation = aiService.generateTaskRecommendation(commonTasks[i], categories[i]);
+                if (recommendation != null && !recommendation.isEmpty()) {
+                    efficientCategories.append(categories[i]);
+                    if (i < Math.min(categories.length, 2) - 1) {
+                        efficientCategories.append(", ");
+                    }
                 }
             }
-            binding.textProductiveDays.setText(daysText.toString());
+            binding.textEfficientCategories.setText(efficientCategories.toString());
+            
+            // Générer des conseils personnalisés
+            generateAITips();
+            
+        } catch (Exception e) {
+            // Fallback en cas d'erreur
+            binding.textProductiveDays.setText("Jour le plus productif: données insuffisantes");
+            binding.textProductiveHours.setText("Heure la plus productive: données insuffisantes");
+            binding.textEfficientCategories.setText("Catégories optimales: données insuffisantes");
         }
-        
-        // Récupérer les catégories les plus efficaces
-        String[] efficientCategories = habitAnalyzer.getMostEfficientCategories();
-        if (efficientCategories.length > 0) {
-            StringBuilder categoriesText = new StringBuilder("Catégories les plus efficaces: ");
-            for (int i = 0; i < Math.min(efficientCategories.length, 3); i++) {
-                categoriesText.append(efficientCategories[i]);
-                if (i < Math.min(efficientCategories.length, 3) - 1) {
-                    categoriesText.append(", ");
-                }
-            }
-            binding.textEfficientCategories.setText(categoriesText.toString());
-        }
-        
-        // Générer des conseils personnalisés
-        generateAITips();
     }
 
     private void generateAITips() {
         StringBuilder tips = new StringBuilder();
         
-        // Conseil basé sur les heures productives
-        int[] productiveHours = habitAnalyzer.getMostProductiveHours();
-        if (productiveHours.length > 0) {
-            tips.append("• Vous êtes plus productif(ve) vers ").append(productiveHours[0])
-                .append("h. Planifiez vos tâches importantes à ce moment.\n\n");
+        // Utiliser le backend d'IA pour générer des conseils personnalisés
+        String productivityTip = aiService.generateProductivityTip();
+        if (productivityTip != null && !productivityTip.isEmpty()) {
+            tips.append("• ").append(productivityTip).append("\n\n");
         }
         
-        // Conseil basé sur les jours productifs
-        int[] productiveDays = habitAnalyzer.getMostProductiveDays();
-        if (productiveDays.length > 0) {
-            String[] dayNames = {"dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"};
-            tips.append("• Le ").append(dayNames[productiveDays[0]])
-                .append(" est votre jour le plus productif. Réservez ce jour pour les tâches complexes.\n\n");
+        // Ajouter des recommandations pour des tâches spécifiques
+        String[] commonTasks = {"Réunion d'équipe", "Préparation de présentation"};
+        String[] categories = {"Travail", "Études"};
+        
+        for (int i = 0; i < Math.min(commonTasks.length, 1); i++) {
+            String recommendation = aiService.generateTaskRecommendation(commonTasks[i], categories[i]);
+            if (recommendation != null && !recommendation.isEmpty()) {
+                tips.append("• ").append(recommendation).append("\n\n");
+            }
         }
         
         // Conseil général sur les pauses

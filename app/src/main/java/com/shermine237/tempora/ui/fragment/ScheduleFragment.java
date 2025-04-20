@@ -20,10 +20,13 @@ import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.FragmentScheduleBinding;
 import com.shermine237.tempora.model.Schedule;
 import com.shermine237.tempora.model.ScheduleItem;
+import com.shermine237.tempora.model.Task;
 import com.shermine237.tempora.service.AIService;
 import com.shermine237.tempora.ui.adapter.ScheduleAdapter;
 import com.shermine237.tempora.ui.decorator.ScheduleDateDecorator;
+import com.shermine237.tempora.ui.decorator.TodayDecorator;
 import com.shermine237.tempora.viewmodel.ScheduleViewModel;
+import com.shermine237.tempora.viewmodel.TaskViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,11 +41,13 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
 
     private FragmentScheduleBinding binding;
     private ScheduleViewModel scheduleViewModel;
-    private ScheduleAdapter scheduleAdapter;
+    private TaskViewModel taskViewModel;
     private AIService aiService;
-    private Date selectedDate;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy", Locale.FRENCH);
+    private ScheduleAdapter scheduleAdapter;
     private ScheduleDateDecorator scheduleDateDecorator;
+    private TodayDecorator todayDecorator;
+    private Date selectedDate;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault());
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,49 +59,51 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        // Initialiser le ViewModel
+        // Initialiser les ViewModels
         scheduleViewModel = new ViewModelProvider(this).get(ScheduleViewModel.class);
+        taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         
-        // Initialiser le service IA
+        // Initialiser le service AI
         aiService = new AIService(requireActivity().getApplication());
         
-        // Initialiser la date sélectionnée à aujourd'hui
-        selectedDate = new Date();
-        
         // Configurer le RecyclerView
-        setupRecyclerView();
+        scheduleAdapter = new ScheduleAdapter(new ArrayList<>(), this);
+        binding.recyclerSchedule.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerSchedule.setAdapter(scheduleAdapter);
         
         // Configurer le calendrier
-        setupCalendar();
+        binding.calendarView.setOnDateChangedListener(this);
         
-        // Observer les changements de données
+        // Initialiser le décorateur pour les dates avec des plannings
+        scheduleDateDecorator = new ScheduleDateDecorator(requireContext(), new HashSet<>());
+        binding.calendarView.addDecorator(scheduleDateDecorator);
+        
+        // Ajouter un décorateur pour la date du jour
+        todayDecorator = new TodayDecorator(requireContext());
+        binding.calendarView.addDecorator(todayDecorator);
+        
+        // Sélectionner la date du jour par défaut
+        Calendar calendar = Calendar.getInstance();
+        selectedDate = calendar.getTime();
+        binding.textSelectedDate.setText(dateFormat.format(selectedDate));
+        
+        // Charger les dates avec des plannings
+        loadScheduleDates();
+        
+        // Observer les données du planning
         observeScheduleData();
         
         // Configurer le bouton de génération de planning
         binding.fabGenerateSchedule.setOnClickListener(v -> {
-            generateSchedule();
+            showGenerateScheduleConfirmationDialog();
         });
     }
 
-    private void setupRecyclerView() {
-        scheduleAdapter = new ScheduleAdapter(new ArrayList<>(), this);
-        binding.recyclerSchedule.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerSchedule.setAdapter(scheduleAdapter);
-    }
-
-    private void setupCalendar() {
-        // Initialiser le décorateur avec un ensemble vide
-        scheduleDateDecorator = new ScheduleDateDecorator(requireContext(), new HashSet<>());
-        binding.calendarView.addDecorator(scheduleDateDecorator);
-        
-        // Configurer le listener de sélection de date
-        binding.calendarView.setOnDateChangedListener(this);
-        
-        // Sélectionner la date du jour
-        CalendarDay today = CalendarDay.today();
-        binding.calendarView.setDateSelected(today, true);
-        
-        // Charger les dates avec des plannings
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Recharger les données à chaque fois que le fragment devient visible
+        loadScheduleForSelectedDate();
         loadScheduleDates();
     }
 
@@ -130,14 +137,65 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     }
 
     private void loadScheduleForSelectedDate() {
+        // Charger le planning généré par l'IA pour la date sélectionnée
         scheduleViewModel.getScheduleForDate(selectedDate).observe(getViewLifecycleOwner(), schedule -> {
-            updateScheduleList(schedule);
+            // Charger les tâches planifiées manuellement pour cette date
+            taskViewModel.getTasksScheduledForDate(selectedDate).observe(getViewLifecycleOwner(), tasks -> {
+                // Combiner le planning généré et les tâches planifiées manuellement
+                List<ScheduleItem> combinedItems = new ArrayList<>();
+                
+                // Ajouter les éléments du planning généré s'il existe
+                if (schedule != null && schedule.getItems() != null && !schedule.getItems().isEmpty()) {
+                    combinedItems.addAll(schedule.getItems());
+                }
+                
+                // Convertir les tâches planifiées manuellement en éléments de planning et les ajouter
+                if (tasks != null && !tasks.isEmpty()) {
+                    for (Task task : tasks) {
+                        // Créer un élément de planning à partir de la tâche
+                        ScheduleItem item = convertTaskToScheduleItem(task);
+                        if (item != null) {
+                            combinedItems.add(item);
+                        }
+                    }
+                }
+                
+                // Mettre à jour l'interface utilisateur
+                updateScheduleList(combinedItems);
+            });
         });
     }
+    
+    /**
+     * Convertit une tâche en élément de planning
+     * @param task Tâche à convertir
+     * @return Élément de planning correspondant à la tâche
+     */
+    private ScheduleItem convertTaskToScheduleItem(Task task) {
+        if (task.getScheduledDate() == null) {
+            return null;
+        }
+        
+        // Créer une heure de début à partir de la date planifiée
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(task.getScheduledDate());
+        Date startTime = startCal.getTime();
+        
+        // Créer une heure de fin en ajoutant la durée estimée
+        Calendar endCal = (Calendar) startCal.clone();
+        endCal.add(Calendar.MINUTE, task.getEstimatedDuration());
+        Date endTime = endCal.getTime();
+        
+        // Créer un élément de planning avec l'ID de la tâche et marquer comme planifié manuellement
+        return new ScheduleItem(task.getId(), task.getTitle(), startTime, endTime, true);
+    }
 
-    private void updateScheduleList(Schedule schedule) {
-        if (schedule != null && schedule.getItems() != null && !schedule.getItems().isEmpty()) {
-            scheduleAdapter.updateScheduleItems(schedule.getItems());
+    private void updateScheduleList(List<ScheduleItem> items) {
+        if (items != null && !items.isEmpty()) {
+            // Trier les éléments par heure de début
+            items.sort((item1, item2) -> item1.getStartTime().compareTo(item2.getStartTime()));
+            
+            scheduleAdapter.updateScheduleItems(items);
             binding.textEmptySchedule.setVisibility(View.GONE);
             binding.recyclerSchedule.setVisibility(View.VISIBLE);
         } else {
@@ -155,15 +213,37 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         // Désactiver le bouton pendant la génération
         binding.fabGenerateSchedule.setEnabled(false);
         
+        // Observer l'état de génération du planning
+        aiService.getIsGenerating().observe(getViewLifecycleOwner(), isGenerating -> {
+            if (!isGenerating) {
+                // La génération est terminée, recharger le planning
+                loadScheduleForSelectedDate();
+                loadScheduleDates(); // Recharger les dates avec des plannings
+                binding.fabGenerateSchedule.setEnabled(true);
+                
+                // Arrêter d'observer
+                aiService.getIsGenerating().removeObservers(getViewLifecycleOwner());
+            }
+        });
+        
         // Générer le planning
         aiService.generateScheduleForDate(selectedDate);
+    }
+
+    private void showGenerateScheduleConfirmationDialog() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Générer un planning");
+        builder.setMessage("Voulez-vous générer un planning pour " + dateFormat.format(selectedDate) + " ?\n\nCela remplacera tout planning existant pour cette date.");
         
-        // Attendre un peu puis recharger le planning
-        new Handler().postDelayed(() -> {
-            loadScheduleForSelectedDate();
-            loadScheduleDates(); // Recharger les dates avec des plannings
-            binding.fabGenerateSchedule.setEnabled(true);
-        }, 3000); // Attendre 3 secondes avant de recharger
+        builder.setPositiveButton("Générer", (dialog, which) -> {
+            generateSchedule();
+        });
+        
+        builder.setNegativeButton("Annuler", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        
+        builder.create().show();
     }
 
     @Override
@@ -222,17 +302,23 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         if (selected) {
             // Convertir CalendarDay en Date
             Calendar calendar = Calendar.getInstance();
-            calendar.set(date.getYear(), date.getMonth() - 1, date.getDay()); // Ajuster le mois (0-11)
+            calendar.set(Calendar.YEAR, date.getYear());
+            calendar.set(Calendar.MONTH, date.getMonth() - 1);
+            calendar.set(Calendar.DAY_OF_MONTH, date.getDay());
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
             selectedDate = calendar.getTime();
+            
+            // Mettre à jour le titre avec la date sélectionnée
+            binding.textSelectedDate.setText(dateFormat.format(selectedDate));
+            
+            // Réinitialiser le texte vide
+            binding.textEmptySchedule.setText("Aucun planning pour cette date");
             
             // Charger le planning pour la date sélectionnée
             loadScheduleForSelectedDate();
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }

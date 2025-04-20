@@ -9,11 +9,13 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.shermine237.tempora.ai.IntelligentScheduler;
-import com.shermine237.tempora.ai.UserHabitAnalyzer;
+import com.shermine237.tempora.ai.backend.AIBackendService;
+import com.shermine237.tempora.ai.backend.UserPreferences;
 import com.shermine237.tempora.model.Schedule;
+import com.shermine237.tempora.model.ScheduleItem;
 import com.shermine237.tempora.model.Task;
 import com.shermine237.tempora.model.UserProfile;
+import com.shermine237.tempora.model.WorkHours;
 import com.shermine237.tempora.repository.ScheduleRepository;
 import com.shermine237.tempora.repository.TaskRepository;
 import com.shermine237.tempora.repository.UserProfileRepository;
@@ -50,42 +52,47 @@ public class AIService {
     private final UserProfileRepository userProfileRepository;
     private final ScheduleRepository scheduleRepository;
     
-    // Composants IA
-    private final UserHabitAnalyzer habitAnalyzer;
-    private final IntelligentScheduler scheduler;
-    
-    // Service de notification
+    // Services
     private final NotificationService notificationService;
     
-    // Exécuteur pour les opérations en arrière-plan
-    private final ExecutorService executor;
+    // Backend d'IA
+    private final AIBackendService aiBackendService;
     
-    // Handler pour les opérations sur le thread principal
+    // Exécuteur pour les tâches en arrière-plan
+    private final ExecutorService executor;
     private final Handler handler;
     
     // Statut de l'analyse
     private final MutableLiveData<Boolean> isAnalyzing;
     
-    // Constructeur
+    // Statut de la génération de planning
+    private final MutableLiveData<Boolean> isGenerating;
+    
+    /**
+     * Constructeur
+     * @param application Application
+     */
     public AIService(Application application) {
         this.application = application;
+        
+        // Initialiser les repositories
         taskRepository = new TaskRepository(application);
         userProfileRepository = new UserProfileRepository(application);
         scheduleRepository = new ScheduleRepository(application);
         
-        // Initialiser les composants IA
-        habitAnalyzer = new UserHabitAnalyzer();
-        scheduler = new IntelligentScheduler(habitAnalyzer);
-        
         // Initialiser le service de notification
         notificationService = new NotificationService(application);
+        
+        // Initialiser le backend d'IA
+        aiBackendService = new AIBackendService(application);
         
         // Initialiser les exécuteurs
         executor = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
         
-        // Initialiser le statut
+        // Initialiser les statuts
         isAnalyzing = new MutableLiveData<>(false);
+        isGenerating = new MutableLiveData<>(false);
     }
     
     /**
@@ -100,9 +107,6 @@ public class AIService {
                 List<Task> completedTasks = taskRepository.getCompletedTasks().getValue();
                 
                 if (completedTasks != null && !completedTasks.isEmpty()) {
-                    // Analyser les habitudes
-                    habitAnalyzer.analyzeTasks(completedTasks);
-                    
                     // Générer des conseils de productivité
                     generateProductivityTips();
                 }
@@ -119,6 +123,9 @@ public class AIService {
      * Génère un planning optimisé pour une journée donnée
      */
     public void generateScheduleForDate(Date date) {
+        // Indiquer que la génération commence
+        isGenerating.postValue(true);
+        
         executor.execute(() -> {
             try {
                 Log.i(TAG, "Starting schedule generation for date: " + date);
@@ -134,8 +141,8 @@ public class AIService {
                     userProfileRepository.insert(userProfile);
                 }
                 
-                // Configurer le planificateur
-                scheduler.setUserProfile(userProfile);
+                // Configurer les préférences utilisateur pour le backend d'IA
+                configureUserPreferences();
                 
                 // Récupérer les tâches incomplètes
                 List<Task> incompleteTasks = taskRepository.getIncompleteTasks().getValue();
@@ -153,8 +160,18 @@ public class AIService {
                 
                 Log.i(TAG, "Found " + incompleteTasks.size() + " tasks to schedule");
                 
-                // Générer le planning
-                Schedule schedule = scheduler.generateSchedule(date, incompleteTasks);
+                // Convertir les tâches Android en tâches backend
+                List<com.shermine237.tempora.ai.backend.Task> backendTasks = new ArrayList<>();
+                for (Task task : incompleteTasks) {
+                    backendTasks.add(aiBackendService.convertAndroidTaskToBackendTask(task));
+                }
+                
+                // Générer le planning avec le backend d'IA
+                com.shermine237.tempora.ai.backend.Schedule backendSchedule = 
+                    aiBackendService.generateSchedule(date, backendTasks);
+                
+                // Convertir le planning backend en planning Android
+                Schedule schedule = aiBackendService.convertBackendScheduleToAndroidSchedule(backendSchedule);
                 
                 Log.i(TAG, "Schedule generated with " + schedule.getItems().size() + " items");
                 
@@ -191,15 +208,51 @@ public class AIService {
                     notificationService.notifyDailySchedule(schedule);
                 });
                 
-                // Vérifier la surcharge potentielle
-                checkForOverload(schedule);
-                
-                Log.i(TAG, "Schedule generation completed successfully");
+                // Indiquer que la génération est terminée
+                isGenerating.postValue(false);
                 
             } catch (Exception e) {
                 Log.e(TAG, "Error generating schedule", e);
+                // En cas d'erreur, indiquer que la génération est terminée
+                isGenerating.postValue(false);
             }
         });
+    }
+    
+    /**
+     * Configure les préférences utilisateur pour le backend d'IA
+     */
+    private void configureUserPreferences() {
+        // Récupérer le profil utilisateur
+        UserProfile userProfile = userProfileRepository.getUserProfile().getValue();
+        if (userProfile == null) {
+            return;
+        }
+        
+        // Créer les préférences utilisateur pour le backend d'IA
+        com.shermine237.tempora.ai.backend.UserPreferences preferences = new com.shermine237.tempora.ai.backend.UserPreferences();
+        
+        // Configurer les heures de travail
+        if (userProfile.getWorkHours() != null) {
+            for (int i = 0; i < Math.min(7, userProfile.getWorkHours().size()); i++) {
+                WorkHours workHours = userProfile.getWorkHours().get(i);
+                int startHour = workHours.getStartHour();
+                int endHour = workHours.getEndHour();
+                preferences.setWorkStartHour(i, startHour);
+                preferences.setWorkEndHour(i, endHour);
+            }
+        }
+        
+        // Configurer les préférences de repas
+        preferences.setIncludeBreakfast(userProfile.isIncludeBreakfast());
+        preferences.setIncludeLunch(userProfile.isIncludeLunch());
+        preferences.setIncludeDinner(userProfile.isIncludeDinner());
+        
+        // Configurer les préférences de pauses
+        preferences.setIncludeBreaks(userProfile.isIncludeBreaks());
+        
+        // Initialiser le backend d'IA avec les préférences
+        aiBackendService.initialize(preferences);
     }
     
     /**
@@ -234,31 +287,31 @@ public class AIService {
      */
     private void generateProductivityTips() {
         try {
-            // Obtenir les heures les plus productives
-            int[] productiveHours = habitAnalyzer.getMostProductiveHours();
+            // Utiliser le backend d'IA pour générer des conseils de productivité
+            String productivityTip = generateProductivityTip();
             
-            if (productiveHours.length > 0) {
-                int bestHour = productiveHours[0];
-                String tip = String.format(
-                        "Vous êtes plus productif(ve) vers %dh. Essayez de planifier vos tâches importantes à ce moment.",
-                        bestHour);
-                notificationService.notifyProductivityTip(tip);
+            if (productivityTip != null && !productivityTip.isEmpty()) {
+                // Envoyer une notification avec le conseil
+                notificationService.sendProductivityTipNotification(
+                    "Conseil de productivité", 
+                    productivityTip
+                );
             }
-            
-            // Obtenir les jours les plus productifs
-            int[] productiveDays = habitAnalyzer.getMostProductiveDays();
-            
-            if (productiveDays.length > 0) {
-                String[] dayNames = {"dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"};
-                int bestDay = productiveDays[0];
-                String tip = String.format(
-                        "Vous êtes plus productif(ve) le %s. Planifiez vos tâches importantes ce jour-là.",
-                        dayNames[bestDay]);
-                notificationService.notifyProductivityTip(tip);
-            }
-            
         } catch (Exception e) {
-            Log.e(TAG, "Error generating productivity tips", e);
+            Log.e(TAG, "Erreur lors de la génération des conseils de productivité", e);
+        }
+    }
+    
+    /**
+     * Génère un conseil de productivité personnalisé
+     * @return Conseil de productivité
+     */
+    public String generateProductivityTip() {
+        try {
+            return aiBackendService.generateProductivityTip();
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la génération d'un conseil de productivité", e);
+            return "Essayez de planifier vos tâches importantes le matin pour une meilleure productivité.";
         }
     }
     
@@ -441,10 +494,19 @@ public class AIService {
     }
     
     /**
-     * Obtient le statut de l'analyse
+     * Retourne l'état d'analyse des habitudes utilisateur
+     * @return LiveData indiquant si l'analyse est en cours
      */
     public LiveData<Boolean> getIsAnalyzing() {
         return isAnalyzing;
+    }
+    
+    /**
+     * Retourne l'état de génération de planning
+     * @return LiveData indiquant si la génération est en cours
+     */
+    public LiveData<Boolean> getIsGenerating() {
+        return isGenerating;
     }
     
     /**
@@ -501,5 +563,65 @@ public class AIService {
         predictedDuration = Math.round(predictedDuration * 1.1f);
         
         return predictedDuration;
+    }
+    
+    /**
+     * Ajoute une activité utilisateur pour l'apprentissage automatique
+     * @param title Titre de l'activité
+     * @param description Description de l'activité
+     * @param category Catégorie de l'activité
+     * @param startTime Heure de début
+     * @param endTime Heure de fin
+     * @param productivityScore Score de productivité (0-5)
+     * @param completed Si l'activité a été complétée
+     */
+    public void addUserActivity(String title, String description, String category, 
+                               Date startTime, Date endTime, float productivityScore, 
+                               boolean completed) {
+        executor.execute(() -> {
+            try {
+                // Créer une activité utilisateur
+                com.shermine237.tempora.ai.backend.UserActivity activity = 
+                    new com.shermine237.tempora.ai.backend.UserActivity(
+                        title, description, category, startTime, endTime, 
+                        productivityScore, completed);
+                
+                // Ajouter l'activité au backend d'IA
+                aiBackendService.addUserActivity(activity);
+                
+                Log.i(TAG, "Added user activity: " + title);
+            } catch (Exception e) {
+                Log.e(TAG, "Error adding user activity", e);
+            }
+        });
+    }
+    
+    /**
+     * Récupère une tâche par son ID
+     * @param taskId ID de la tâche
+     * @return Tâche ou null si non trouvée
+     */
+    public Task getTaskById(int taskId) {
+        try {
+            return taskRepository.getTaskById(taskId).getValue();
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting task by ID: " + taskId, e);
+            return null;
+        }
+    }
+    
+    /**
+     * Génère une recommandation personnalisée pour une tâche
+     * @param taskTitle Titre de la tâche
+     * @param category Catégorie de la tâche
+     * @return Recommandation personnalisée
+     */
+    public String generateTaskRecommendation(String taskTitle, String category) {
+        try {
+            return aiBackendService.generateTaskRecommendation(taskTitle, category);
+        } catch (Exception e) {
+            Log.e(TAG, "Error generating task recommendation", e);
+            return "Essayez de planifier cette tâche le matin pour une meilleure productivité.";
+        }
     }
 }

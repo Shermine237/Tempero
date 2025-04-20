@@ -80,6 +80,15 @@ public class TaskDetailFragment extends Fragment {
         String status = task.isCompleted() ? "Terminée" : "En cours";
         binding.textTaskStatus.setText(status);
         
+        // Source de la tâche (manuelle ou IA)
+        if (task.getScheduledDate() != null) {
+            binding.textTaskDetailSource.setText("Planifiée manuellement");
+            binding.textTaskDetailSource.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            binding.textTaskDetailSource.setText("Générée par IA");
+            binding.textTaskDetailSource.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+        }
+        
         // Date d'échéance
         if (task.getDueDate() != null) {
             binding.textTaskDueDate.setText(dateFormat.format(task.getDueDate()));

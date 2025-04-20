@@ -72,21 +72,35 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
             int durationMinutes = item.getDurationMinutes();
             binding.textScheduleDuration.setText(durationMinutes + " min");
             
-            String typeText = "Type: ";
+            String typeText = "";
             switch (item.getType()) {
                 case "task":
-                    typeText += "Tâche";
+                    typeText = "Tâche";
                     break;
                 case "break":
-                    typeText += "Pause";
+                    typeText = "Pause";
                     break;
                 case "meal":
-                    typeText += "Repas";
+                    typeText = "Repas";
                     break;
                 default:
-                    typeText += item.getType();
+                    typeText = item.getType();
             }
             binding.textScheduleType.setText(typeText);
+            
+            // Afficher la source de la tâche (manuelle ou IA)
+            if (item.getType().equals("task")) {
+                if (item.isManuallyScheduled()) {
+                    binding.textScheduleSource.setText("Planifiée manuellement");
+                    binding.textScheduleSource.setTextColor(binding.getRoot().getContext().getResources().getColor(android.R.color.holo_green_dark));
+                } else {
+                    binding.textScheduleSource.setText("Générée par IA");
+                    binding.textScheduleSource.setTextColor(binding.getRoot().getContext().getResources().getColor(android.R.color.holo_blue_dark));
+                }
+                binding.textScheduleSource.setVisibility(android.view.View.VISIBLE);
+            } else {
+                binding.textScheduleSource.setVisibility(android.view.View.GONE);
+            }
             
             binding.checkboxScheduleCompleted.setChecked(item.isCompleted());
             

@@ -32,10 +32,16 @@ public class UserProfile {
     @TypeConverters(WorkHoursListConverter.class)
     private List<WorkHours> workHoursByDay;
     
-    // Préférences de pause
+    // Préférences de repas
+    private boolean includeBreakfast;
+    private boolean includeLunch;
+    private boolean includeDinner;
+    
+    // Préférences de pauses
     private int shortBreakDuration; // Durée des pauses courtes en minutes
     private int longBreakDuration; // Durée des pauses longues en minutes
     private int workSessionsBeforeLongBreak; // Nombre de sessions de travail avant une pause longue
+    private boolean includeBreaks;
     
     // Jours de travail préférés (0 = Dimanche, 1 = Lundi, ..., 6 = Samedi)
     @TypeConverters(StringListConverter.class)
@@ -58,6 +64,10 @@ public class UserProfile {
         this.shortBreakDuration = 5; // Par défaut: 5 minutes
         this.longBreakDuration = 15; // Par défaut: 15 minutes
         this.workSessionsBeforeLongBreak = 4; // Par défaut: 4 sessions
+        this.includeBreakfast = true;
+        this.includeLunch = true;
+        this.includeDinner = true;
+        this.includeBreaks = true;
         
         // Par défaut: du lundi au vendredi
         this.workDays = new ArrayList<>();
@@ -178,6 +188,46 @@ public class UserProfile {
     
     public void setWorkHoursByDay(List<WorkHours> workHoursByDay) {
         this.workHoursByDay = workHoursByDay;
+    }
+    
+    public List<WorkHours> getWorkHours() {
+        return workHoursByDay;
+    }
+    
+    public void setWorkHours(List<WorkHours> workHoursByDay) {
+        this.workHoursByDay = workHoursByDay;
+    }
+    
+    public boolean isIncludeBreakfast() {
+        return includeBreakfast;
+    }
+    
+    public void setIncludeBreakfast(boolean includeBreakfast) {
+        this.includeBreakfast = includeBreakfast;
+    }
+    
+    public boolean isIncludeLunch() {
+        return includeLunch;
+    }
+    
+    public void setIncludeLunch(boolean includeLunch) {
+        this.includeLunch = includeLunch;
+    }
+    
+    public boolean isIncludeDinner() {
+        return includeDinner;
+    }
+    
+    public void setIncludeDinner(boolean includeDinner) {
+        this.includeDinner = includeDinner;
+    }
+    
+    public boolean isIncludeBreaks() {
+        return includeBreaks;
+    }
+    
+    public void setIncludeBreaks(boolean includeBreaks) {
+        this.includeBreaks = includeBreaks;
     }
     
     /**

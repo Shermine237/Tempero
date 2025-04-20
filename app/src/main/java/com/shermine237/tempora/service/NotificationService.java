@@ -17,9 +17,11 @@ import com.shermine237.tempora.model.ScheduleItem;
 import com.shermine237.tempora.model.Task;
 import com.shermine237.tempora.ui.MainActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,10 +33,12 @@ public class NotificationService {
     private static final String CHANNEL_ID_TASKS = "tempero_tasks";
     private static final String CHANNEL_ID_SCHEDULE = "tempero_schedule";
     private static final String CHANNEL_ID_RECOMMENDATIONS = "tempero_recommendations";
+    private static final String CHANNEL_ID_TIPS = "tempero_tips";
     
     private static final int NOTIFICATION_ID_TASK_REMINDER = 1000;
     private static final int NOTIFICATION_ID_SCHEDULE_REMINDER = 2000;
     private static final int NOTIFICATION_ID_PRODUCTIVITY_TIP = 3000;
+    private static final int NOTIFICATION_ID_TIP = 4000;
     
     private final Context context;
     private final NotificationManagerCompat notificationManager;
@@ -80,11 +84,20 @@ public class NotificationService {
             );
             recommendationsChannel.setDescription("Conseils et astuces pour améliorer votre productivité");
             
+            // Canal pour les conseils
+            NotificationChannel tipsChannel = new NotificationChannel(
+                    CHANNEL_ID_TIPS,
+                    "Conseils",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            tipsChannel.setDescription("Conseils pour améliorer votre productivité");
+            
             // Enregistrer les canaux
             NotificationManager manager = context.getSystemService(NotificationManager.class);
             manager.createNotificationChannel(tasksChannel);
             manager.createNotificationChannel(scheduleChannel);
             manager.createNotificationChannel(recommendationsChannel);
+            manager.createNotificationChannel(tipsChannel);
         }
     }
     
@@ -163,31 +176,53 @@ public class NotificationService {
      * @param schedule Planning du jour
      */
     public void notifyDailySchedule(Schedule schedule) {
-        if (schedule == null || schedule.getItems().isEmpty()) {
+        if (schedule == null || schedule.getItems() == null || schedule.getItems().isEmpty()) {
             return;
         }
         
         // Créer l'intent pour la notification
         Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("date", schedule.getDate().getTime());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, NOTIFICATION_ID_SCHEDULE_REMINDER, intent, PendingIntent.FLAG_IMMUTABLE);
         
-        // Construire le texte de la notification
-        StringBuilder contentText = new StringBuilder("Votre planning pour aujourd'hui est prêt.");
+        // Formater la date pour l'affichage
+        String dateStr;
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        
+        Calendar scheduleCalendar = Calendar.getInstance();
+        scheduleCalendar.setTime(schedule.getDate());
+        scheduleCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        scheduleCalendar.set(Calendar.MINUTE, 0);
+        scheduleCalendar.set(Calendar.SECOND, 0);
+        scheduleCalendar.set(Calendar.MILLISECOND, 0);
+        
+        if (scheduleCalendar.getTimeInMillis() == today.getTimeInMillis()) {
+            dateStr = "aujourd'hui";
+        } else if (scheduleCalendar.getTimeInMillis() == today.getTimeInMillis() + 24*60*60*1000) {
+            dateStr = "demain";
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEEE dd MMMM", Locale.FRENCH);
+            dateStr = "le " + sdf.format(schedule.getDate());
+        }
         
         // Créer la notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_SCHEDULE)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("Planning quotidien")
-                .setContentText(contentText.toString())
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentTitle("Votre planning pour " + dateStr + " est prêt")
+                .setContentText("Appuyez pour voir votre planning")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
         
-        // Créer un style pour afficher plus de détails
+        // Ajouter un style inbox pour montrer les éléments du planning
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle()
-                .setBigContentTitle("Votre planning pour aujourd'hui");
+                .setBigContentTitle("Votre planning pour " + dateStr);
         
         // Ajouter les 5 premières tâches du planning
         List<ScheduleItem> items = schedule.getItems();
@@ -264,7 +299,7 @@ public class NotificationService {
         
         for (ScheduleItem item : schedule.getItems()) {
             if ("task".equals(item.getType())) {
-                scheduleItemNotification(item, schedule.getDate());
+                scheduleNotificationForItem(schedule.getDate(), item);
             }
         }
         
@@ -274,10 +309,10 @@ public class NotificationService {
     
     /**
      * Programme une notification pour un élément de planning
-     * @param item Élément du planning
      * @param scheduleDate Date du planning
+     * @param item Élément du planning
      */
-    private void scheduleItemNotification(ScheduleItem item, Date scheduleDate) {
+    private void scheduleNotificationForItem(Date scheduleDate, ScheduleItem item) {
         if (item == null || scheduleDate == null || item.getStartTime() == null) {
             return;
         }
@@ -286,10 +321,12 @@ public class NotificationService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(scheduleDate);
         
-        // Extraire les heures et minutes du format "HH:mm"
-        String[] timeParts = item.getStartTime().split(":");
-        int hours = Integer.parseInt(timeParts[0]);
-        int minutes = Integer.parseInt(timeParts[1]);
+        // Utiliser directement l'heure de début (Date)
+        Calendar startTimeCal = Calendar.getInstance();
+        startTimeCal.setTime(item.getStartTime());
+        
+        int hours = startTimeCal.get(Calendar.HOUR_OF_DAY);
+        int minutes = startTimeCal.get(Calendar.MINUTE);
         
         calendar.set(Calendar.HOUR_OF_DAY, hours);
         calendar.set(Calendar.MINUTE, minutes);
@@ -309,7 +346,7 @@ public class NotificationService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_TASKS)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Tâche à venir")
-                .setContentText(item.getTitle() + " commence à " + item.getStartTime())
+                .setContentText(item.getTitle() + " commence à " + formatTime(item.getStartTime()))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
@@ -362,13 +399,46 @@ public class NotificationService {
     }
     
     /**
-     * Formate une date pour afficher uniquement l'heure (HH:MM)
+     * Formate une date en chaîne d'heure (HH:mm)
+     * @param date Date à formater
+     * @return Chaîne d'heure formatée
      */
     private String formatTime(Date date) {
+        if (date == null) {
+            return "00:00";
+        }
+        
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
-        return String.format("%02d:%02d", hour, minute);
+        
+        int hours = calendar.get(Calendar.HOUR_OF_DAY);
+        int minutes = calendar.get(Calendar.MINUTE);
+        
+        return String.format("%02d:%02d", hours, minutes);
+    }
+    
+    /**
+     * Envoie une notification avec un conseil de productivité
+     * @param title Titre de la notification
+     * @param message Message de la notification
+     */
+    public void sendProductivityTipNotification(String title, String message) {
+        // Créer l'intent pour la notification
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        
+        // Créer la notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_TIPS)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        
+        // Afficher la notification
+        notificationManager.notify(NOTIFICATION_ID_TIP, builder.build());
     }
 }

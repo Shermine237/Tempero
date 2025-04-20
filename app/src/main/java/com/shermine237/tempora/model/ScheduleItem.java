@@ -22,6 +22,7 @@ public class ScheduleItem {
     
     private String type; // Type d'élément: "task", "break", "meal", etc.
     private boolean completed; // Si l'élément a été complété
+    private boolean manuallyScheduled; // Si l'élément a été planifié manuellement
     
     // Constructeur pour une tâche
     public ScheduleItem(int taskId, String title, Date startTime, Date endTime) {
@@ -31,6 +32,18 @@ public class ScheduleItem {
         this.endTime = endTime;
         this.type = "task";
         this.completed = false;
+        this.manuallyScheduled = false;
+    }
+    
+    // Constructeur pour une tâche planifiée manuellement
+    public ScheduleItem(int taskId, String title, Date startTime, Date endTime, boolean manuallyScheduled) {
+        this.taskId = taskId;
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.type = "task";
+        this.completed = false;
+        this.manuallyScheduled = manuallyScheduled;
     }
     
     // Constructeur pour un autre type d'élément (pause, repas, etc.)
@@ -41,6 +54,7 @@ public class ScheduleItem {
         this.endTime = endTime;
         this.type = type;
         this.completed = false;
+        this.manuallyScheduled = false;
     }
     
     // Getters et Setters
@@ -90,6 +104,14 @@ public class ScheduleItem {
     
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+    
+    public boolean isManuallyScheduled() {
+        return manuallyScheduled;
+    }
+    
+    public void setManuallyScheduled(boolean manuallyScheduled) {
+        this.manuallyScheduled = manuallyScheduled;
     }
     
     // Méthodes utilitaires

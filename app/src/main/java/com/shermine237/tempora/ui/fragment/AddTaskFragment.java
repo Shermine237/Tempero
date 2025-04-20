@@ -31,6 +31,7 @@ public class AddTaskFragment extends Fragment {
     private TaskViewModel taskViewModel;
     private UserProfileViewModel userProfileViewModel;
     private Date selectedDueDate;
+    private Date selectedScheduledDate;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     @Override
@@ -47,9 +48,14 @@ public class AddTaskFragment extends Fragment {
         taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         userProfileViewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
         
-        // Configurer le sélecteur de date
+        // Configurer le sélecteur de date d'échéance
         binding.buttonSelectDate.setOnClickListener(v -> {
-            showDatePicker();
+            showDatePicker(true);
+        });
+        
+        // Configurer le sélecteur de date planifiée
+        binding.buttonSelectScheduledDate.setOnClickListener(v -> {
+            showDatePicker(false);
         });
         
         // Configurer le spinner de catégories
@@ -74,7 +80,7 @@ public class AddTaskFragment extends Fragment {
         });
     }
 
-    private void showDatePicker() {
+    private void showDatePicker(boolean isDueDate) {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -84,8 +90,13 @@ public class AddTaskFragment extends Fragment {
                 requireContext(),
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     calendar.set(selectedYear, selectedMonth, selectedDay);
-                    selectedDueDate = calendar.getTime();
-                    binding.textSelectedDate.setText(dateFormat.format(selectedDueDate));
+                    if (isDueDate) {
+                        selectedDueDate = calendar.getTime();
+                        binding.textSelectedDate.setText(dateFormat.format(selectedDueDate));
+                    } else {
+                        selectedScheduledDate = calendar.getTime();
+                        binding.textSelectedScheduledDate.setText(dateFormat.format(selectedScheduledDate));
+                    }
                 },
                 year, month, day);
         datePickerDialog.show();
@@ -126,7 +137,8 @@ public class AddTaskFragment extends Fragment {
         String category = binding.spinnerCategory.getSelectedItem().toString();
         
         // Créer la tâche
-        taskViewModel.createTask(title, description, selectedDueDate, priority, difficulty, estimatedDuration, category);
+        taskViewModel.createTaskWithScheduledDate(title, description, selectedDueDate, 
+                selectedScheduledDate, priority, difficulty, estimatedDuration, category);
         
         // Retourner à la liste des tâches
         Toast.makeText(requireContext(), "Tâche créée avec succès", Toast.LENGTH_SHORT).show();

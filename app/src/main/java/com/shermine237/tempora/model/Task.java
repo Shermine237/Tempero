@@ -27,6 +27,9 @@ public class Task {
     private Date startDate;
     
     @TypeConverters(DateConverter.class)
+    private Date scheduledDate;
+    
+    @TypeConverters(DateConverter.class)
     private Date completionDate;
     
     private int priority; // 1-5, 5 étant la plus haute priorité
@@ -91,6 +94,14 @@ public class Task {
     
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
+    }
+    
+    public Date getScheduledDate() {
+        return scheduledDate;
+    }
+    
+    public void setScheduledDate(Date scheduledDate) {
+        this.scheduledDate = scheduledDate;
     }
     
     public Date getCompletionDate() {

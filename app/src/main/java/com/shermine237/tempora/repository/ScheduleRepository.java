@@ -10,11 +10,14 @@ import com.shermine237.tempora.data.TemporaDatabase;
 import com.shermine237.tempora.model.Schedule;
 import com.shermine237.tempora.model.ScheduleItem;
 import com.shermine237.tempora.service.NotificationService;
+import com.shermine237.tempora.service.AIService;
+import com.shermine237.tempora.model.Task;
 
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Calendar;
 
 /**
  * Repository pour gérer les opérations de données liées aux plannings.
@@ -25,6 +28,7 @@ public class ScheduleRepository {
     private final ScheduleDao scheduleDao;
     private final ExecutorService executorService;
     private final NotificationService notificationService;
+    private final Application application;
     
     // Données en cache
     private final LiveData<List<Schedule>> allSchedules;
@@ -36,6 +40,7 @@ public class ScheduleRepository {
         scheduleDao = db.scheduleDao();
         executorService = Executors.newFixedThreadPool(4);
         notificationService = new NotificationService(application);
+        this.application = application;
         
         // Initialiser les données en cache
         allSchedules = scheduleDao.getAllSchedules();
@@ -124,6 +129,55 @@ public class ScheduleRepository {
             schedule.setCompleted(true);
             schedule.setProductivityScore(productivityScore);
             scheduleDao.update(schedule);
+            
+            // Collecter les données pour l'apprentissage automatique
+            collectUserActivityData(schedule, productivityScore);
         });
+    }
+    
+    /**
+     * Collecte les données d'activité utilisateur pour l'apprentissage automatique
+     * @param schedule Planning complété
+     * @param productivityScore Score de productivité global
+     */
+    private void collectUserActivityData(Schedule schedule, int productivityScore) {
+        try {
+            // Convertir le score de productivité de 0-100 à 0-5
+            float normalizedScore = productivityScore / 20.0f;
+            
+            // Récupérer le service AI
+            AIService aiService = new AIService(application);
+            
+            // Collecter les données pour chaque élément du planning
+            for (ScheduleItem item : schedule.getItems()) {
+                if (item.isCompleted() && item.getType().equals("task")) {
+                    // Créer une activité utilisateur pour le backend d'IA
+                    String description = ""; // ScheduleItem n'a pas de description
+                    
+                    // Récupérer la catégorie de la tâche
+                    String category = "Autre";
+                    if (item.getTaskId() > 0) {
+                        Task task = aiService.getTaskById(item.getTaskId());
+                        if (task != null) {
+                            category = task.getCategory();
+                            description = task.getDescription();
+                        }
+                    }
+                    
+                    // Ajouter l'activité au backend d'IA
+                    aiService.addUserActivity(
+                        item.getTitle(),
+                        description,
+                        category,
+                        item.getStartTime(),
+                        item.getEndTime(),
+                        normalizedScore,
+                        true
+                    );
+                }
+            }
+        } catch (Exception e) {
+            Log.e("ScheduleRepository", "Error collecting user activity data", e);
+        }
     }
 }

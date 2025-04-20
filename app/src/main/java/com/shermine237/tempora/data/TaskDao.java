@@ -57,4 +57,10 @@ public interface TaskDao {
     
     @Query("SELECT COUNT(*) FROM tasks WHERE dueDate < :currentDate AND completed = 0")
     LiveData<Integer> getOverdueTaskCount(Date currentDate);
+    
+    @Query("SELECT * FROM tasks WHERE dueDate = :date ORDER BY priority DESC")
+    LiveData<List<Task>> getTasksForDate(Date date);
+    
+    @Query("SELECT * FROM tasks WHERE scheduledDate = :date ORDER BY priority DESC")
+    LiveData<List<Task>> getTasksScheduledForDate(Date date);
 }

@@ -68,6 +68,19 @@ public class TaskRepository {
         return taskDao.getTasksByMinPriority(minPriority);
     }
     
+    public LiveData<List<Task>> getTasksForDate(Date date) {
+        return taskDao.getTasksForDate(date);
+    }
+    
+    /**
+     * Récupère les tâches planifiées pour une date spécifique
+     * @param date Date pour laquelle récupérer les tâches planifiées
+     * @return LiveData contenant la liste des tâches planifiées pour cette date
+     */
+    public LiveData<List<Task>> getTasksScheduledForDate(Date date) {
+        return taskDao.getTasksScheduledForDate(date);
+    }
+    
     public LiveData<Integer> getIncompleteTaskCount() {
         return taskDao.getIncompleteTaskCount();
     }

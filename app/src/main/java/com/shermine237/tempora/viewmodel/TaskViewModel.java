@@ -107,4 +107,23 @@ public class TaskViewModel extends AndroidViewModel {
                                estimatedDuration, category);
         insert(newTask);
     }
+    
+    /**
+     * Crée une nouvelle tâche avec une date planifiée
+     */
+    public void createTaskWithScheduledDate(String title, String description, Date dueDate, 
+                                          Date scheduledDate, int priority, int difficulty, 
+                                          int estimatedDuration, String category) {
+        Task newTask = new Task(title, description, dueDate, priority, difficulty, 
+                               estimatedDuration, category);
+        newTask.setScheduledDate(scheduledDate);
+        insert(newTask);
+    }
+    
+    /**
+     * Récupère les tâches planifiées pour une date spécifique
+     */
+    public LiveData<List<Task>> getTasksScheduledForDate(Date date) {
+        return repository.getTasksScheduledForDate(date);
+    }
 }
