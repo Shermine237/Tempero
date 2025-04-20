@@ -6,4 +6,12 @@
     </style>
 
     <style name="Theme.Tempora" parent="Base.Theme.Tempora" />
+    
+    <!-- Style sans barre d'action pour l'écran de démarrage -->
+    <style name="Theme.Tempora.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

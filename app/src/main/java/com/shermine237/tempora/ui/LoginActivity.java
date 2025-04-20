@@ -172,8 +172,12 @@ public class LoginActivity extends AppCompatActivity {
             userProfileViewModel.getUserProfileByEmail(email).observe(this, userProfile -> {
                 if (userProfile != null) {
                     // Dans une application réelle, nous vérifierions le mot de passe haché
-                    // Pour cette démo, nous acceptons n'importe quel mot de passe
-                    loginSuccess(email, userProfile);
+                    // Pour cette démo, nous vérifions simplement que le mot de passe n'est pas vide
+                    if (password.length() >= 6) {
+                        loginSuccess(email, userProfile);
+                    } else {
+                        loginFailed("Mot de passe incorrect");
+                    }
                 } else {
                     loginFailed("Aucun compte trouvé avec cette adresse email");
                 }
