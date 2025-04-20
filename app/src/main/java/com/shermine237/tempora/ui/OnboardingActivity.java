@@ -24,6 +24,8 @@ public class OnboardingActivity extends AppCompatActivity {
     private UserProfileViewModel userProfileViewModel;
     private final CheckBox[] dayCheckboxes = new CheckBox[7];
     private final String[] hours = new String[24];
+    private static final String PREFS_NAME = "onboarding_prefs";
+    private static final String KEY_ONBOARDING_COMPLETED = "onboarding_completed";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,9 @@ public class OnboardingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Crée un profil utilisateur avec les préférences de travail
+     */
     private void createProfile() {
         // Récupérer les informations personnelles
         String name = binding.editName.getText().toString().trim();
@@ -109,9 +114,9 @@ public class OnboardingActivity extends AppCompatActivity {
         userProfileViewModel.insert(profile);
 
         // Marquer l'onboarding comme terminé
-        SharedPreferences prefs = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean("onboarding_completed", true);
+        editor.putBoolean(KEY_ONBOARDING_COMPLETED, true);
         editor.apply();
 
         // Rediriger vers l'activité principale

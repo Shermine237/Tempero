@@ -38,6 +38,15 @@ public class UserProfileRepository {
         return userProfile;
     }
     
+    /**
+     * Récupère un profil utilisateur par son adresse email
+     * @param email Adresse email de l'utilisateur
+     * @return LiveData contenant le profil utilisateur correspondant à l'email
+     */
+    public LiveData<UserProfile> getUserProfileByEmail(String email) {
+        return userProfileDao.getUserProfileByEmail(email);
+    }
+    
     // Méthodes de modification des données
     
     public void insert(UserProfile userProfile) {

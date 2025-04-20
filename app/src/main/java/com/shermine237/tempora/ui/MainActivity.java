@@ -19,8 +19,12 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private UserProfileRepository userProfileRepository;
-    private static final String PREFS_NAME = "TemporaPrefs";
-    private static final String KEY_FIRST_LAUNCH = "firstLaunch";
+    private static final String PREFS_NAME = "onboarding_prefs";
+    private static final String KEY_FIRST_LAUNCH = "first_launch";
+    private static final String KEY_ONBOARDING_COMPLETED = "onboarding_completed";
+    private static final String KEY_LAST_ACTIVE = "last_active_time";
+    private static final String KEY_APP_ACTIVE = "app_active";
+    private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes en millisecondes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,15 @@ public class MainActivity extends AppCompatActivity {
         // Vérifier si l'onboarding a été effectué
         if (!isOnboardingCompleted()) {
             startOnboarding();
+            return;
+        }
+        
+        // Vérifier si l'application était active ou si la session a expiré
+        // Après un force stop, l'application ne sera pas marquée comme active
+        // mais nous ne voulons pas bloquer le lancement
+        if (isSessionExpired()) {
+            // Rediriger vers l'activité de connexion
+            startLoginActivity();
             return;
         }
         
@@ -65,12 +78,34 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navView, navController);
     }
     
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Mettre à jour le temps de dernière activité et marquer l'application comme active
+        updateLastActiveTime();
+        setAppActive(true);
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Mettre à jour le temps de dernière activité
+        updateLastActiveTime();
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Marquer l'application comme inactive lorsqu'elle est arrêtée
+        setAppActive(false);
+    }
+    
     /**
      * Vérifie si l'onboarding a été effectué
      */
     private boolean isOnboardingCompleted() {
-        SharedPreferences preferences = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
-        return preferences.getBoolean("onboarding_completed", false);
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return preferences.getBoolean(KEY_ONBOARDING_COMPLETED, false);
     }
     
     /**
@@ -106,6 +141,69 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, CreateAccountActivity.class);
         startActivity(intent);
         finish();
+    }
+    
+    /**
+     * Vérifie si la session a expiré
+     */
+    private boolean isSessionExpired() {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        long lastActiveTime = preferences.getLong(KEY_LAST_ACTIVE, 0);
+        long currentTime = System.currentTimeMillis();
+        
+        // Si c'est la première fois, la session n'est pas expirée
+        if (lastActiveTime == 0) {
+            return false;
+        }
+        
+        // Si le délai d'inactivité est dépassé
+        boolean isExpired = (currentTime - lastActiveTime) > SESSION_TIMEOUT;
+        
+        // Si l'application n'était pas active (après un force stop par exemple)
+        // et que la session n'est pas expirée, on considère que c'est OK
+        if (!isAppActive() && !isExpired) {
+            // Marquer l'application comme active pour éviter des problèmes futurs
+            setAppActive(true);
+        }
+        
+        return isExpired;
+    }
+    
+    /**
+     * Met à jour le temps de dernière activité
+     */
+    private void updateLastActiveTime() {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putLong(KEY_LAST_ACTIVE, System.currentTimeMillis());
+        editor.apply();
+    }
+    
+    /**
+     * Démarre l'activité de connexion
+     */
+    private void startLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+    
+    /**
+     * Vérifie si l'application était active lors de la dernière utilisation
+     */
+    private boolean isAppActive() {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return preferences.getBoolean(KEY_APP_ACTIVE, false);
+    }
+    
+    /**
+     * Définit si l'application est active ou non
+     */
+    private void setAppActive(boolean active) {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(KEY_APP_ACTIVE, active);
+        editor.apply();
     }
     
     @Override

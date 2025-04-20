@@ -28,8 +28,9 @@ public class CreateAccountActivity extends AppCompatActivity {
     private ActivityCreateAccountBinding binding;
     private UserProfileViewModel userProfileViewModel;
     private static final String TAG = "CreateAccountActivity";
-    private static final String PREFS_NAME = "TemporaPrefs";
-    private static final String KEY_FIRST_LAUNCH = "firstLaunch";
+    private static final String PREFS_NAME = "onboarding_prefs";
+    private static final String KEY_FIRST_LAUNCH = "first_launch";
+    private static final String KEY_ONBOARDING_COMPLETED = "onboarding_completed";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,17 +136,12 @@ public class CreateAccountActivity extends AppCompatActivity {
      * Marque l'application comme ayant déjà été lancée
      */
     private void markFirstLaunchComplete() {
-        // Marquer que ce n'est plus le premier lancement
+        // Marquer que ce n'est plus le premier lancement et que l'onboarding est terminé
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(KEY_FIRST_LAUNCH, false);
+        editor.putBoolean(KEY_ONBOARDING_COMPLETED, true);
         editor.apply();
-        
-        // Marquer également que l'onboarding est terminé
-        SharedPreferences onboardingPrefs = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
-        SharedPreferences.Editor onboardingEditor = onboardingPrefs.edit();
-        onboardingEditor.putBoolean("onboarding_completed", true);
-        onboardingEditor.apply();
         
         Log.d(TAG, "Premier lancement et onboarding marqués comme terminés");
     }
