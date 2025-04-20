@@ -3,7 +3,10 @@ package com.shermine237.tempora.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -24,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_ONBOARDING_COMPLETED = "onboarding_completed";
     private static final String KEY_LAST_ACTIVE = "last_active_time";
     private static final String KEY_APP_ACTIVE = "app_active";
+    private static final String KEY_AUTO_LOGIN = "auto_login";
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes en millisecondes
 
     @Override
@@ -98,6 +102,27 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         // Marquer l'application comme inactive lorsqu'elle est arrêtée
         setAppActive(false);
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflater le menu; cela ajoute des éléments à la barre d'action si elle est présente.
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Gérer les clics sur les éléments de la barre d'action
+        int id = item.getItemId();
+        
+        if (id == R.id.action_logout) {
+            // Déconnecter l'utilisateur
+            logout();
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
     }
     
     /**
@@ -204,6 +229,23 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(KEY_APP_ACTIVE, active);
         editor.apply();
+    }
+    
+    /**
+     * Déconnecte l'utilisateur et le redirige vers l'écran de connexion
+     */
+    private void logout() {
+        // Marquer l'application comme inactive
+        setAppActive(false);
+        
+        // Réinitialiser les préférences d'auto-login
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(KEY_AUTO_LOGIN, false);
+        editor.apply();
+        
+        // Rediriger vers l'écran de connexion
+        startLoginActivity();
     }
     
     @Override
