@@ -254,6 +254,114 @@ public class NotificationService {
     }
     
     /**
+     * Programme des notifications pour toutes les tâches d'un planning approuvé
+     * @param schedule Planning approuvé
+     */
+    public void scheduleNotificationsForApprovedSchedule(Schedule schedule) {
+        if (schedule == null || !schedule.isApproved() || schedule.getItems() == null) {
+            return;
+        }
+        
+        for (ScheduleItem item : schedule.getItems()) {
+            if ("task".equals(item.getType())) {
+                scheduleItemNotification(item, schedule.getDate());
+            }
+        }
+        
+        // Envoyer une notification immédiate pour informer que le planning a été approuvé
+        notifyScheduleApproved(schedule);
+    }
+    
+    /**
+     * Programme une notification pour un élément de planning
+     * @param item Élément du planning
+     * @param scheduleDate Date du planning
+     */
+    private void scheduleItemNotification(ScheduleItem item, Date scheduleDate) {
+        if (item == null || scheduleDate == null || item.getStartTime() == null) {
+            return;
+        }
+        
+        // Calculer la date et l'heure de la notification (15 minutes avant le début)
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(scheduleDate);
+        
+        // Extraire les heures et minutes du format "HH:mm"
+        String[] timeParts = item.getStartTime().split(":");
+        int hours = Integer.parseInt(timeParts[0]);
+        int minutes = Integer.parseInt(timeParts[1]);
+        
+        calendar.set(Calendar.HOUR_OF_DAY, hours);
+        calendar.set(Calendar.MINUTE, minutes);
+        calendar.add(Calendar.MINUTE, -15); // 15 minutes avant
+        
+        // Créer l'intent pour la notification
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        
+        // Générer un ID unique pour cette notification basé sur l'élément du planning
+        int notificationId = (item.getTitle().hashCode() + item.getStartTime().hashCode()) % 10000;
+        
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, notificationId, intent, PendingIntent.FLAG_IMMUTABLE);
+        
+        // Créer la notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_TASKS)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("Tâche à venir")
+                .setContentText(item.getTitle() + " commence à " + item.getStartTime())
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        
+        // Programmer la notification
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.getTimeInMillis(),
+                        pendingIntent
+                );
+            }
+        }
+    }
+    
+    /**
+     * Envoie une notification pour informer que le planning a été approuvé
+     * @param schedule Planning approuvé
+     */
+    private void notifyScheduleApproved(Schedule schedule) {
+        // Créer l'intent pour la notification
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, NOTIFICATION_ID_SCHEDULE_REMINDER, intent, PendingIntent.FLAG_IMMUTABLE);
+        
+        // Créer la notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_SCHEDULE)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("Planning approuvé")
+                .setContentText("Votre planning pour " + formatDate(schedule.getDate()) + " a été approuvé")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+        
+        // Envoyer la notification
+        notificationManager.notify(NOTIFICATION_ID_SCHEDULE_REMINDER, builder.build());
+    }
+    
+    /**
+     * Formate une date en chaîne de caractères lisible
+     * @param date Date à formater
+     * @return Date formatée
+     */
+    private String formatDate(Date date) {
+        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("EEEE dd MMMM", java.util.Locale.FRENCH);
+        return dateFormat.format(date);
+    }
+    
+    /**
      * Formate une date pour afficher uniquement l'heure (HH:MM)
      */
     private String formatTime(Date date) {

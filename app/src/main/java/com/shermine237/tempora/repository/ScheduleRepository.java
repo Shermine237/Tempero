@@ -1,12 +1,15 @@
 package com.shermine237.tempora.repository;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
 import com.shermine237.tempora.data.ScheduleDao;
 import com.shermine237.tempora.data.TemporaDatabase;
 import com.shermine237.tempora.model.Schedule;
+import com.shermine237.tempora.model.ScheduleItem;
+import com.shermine237.tempora.service.NotificationService;
 
 import java.util.Date;
 import java.util.List;
@@ -21,6 +24,7 @@ public class ScheduleRepository {
     
     private final ScheduleDao scheduleDao;
     private final ExecutorService executorService;
+    private final NotificationService notificationService;
     
     // Données en cache
     private final LiveData<List<Schedule>> allSchedules;
@@ -31,6 +35,7 @@ public class ScheduleRepository {
         TemporaDatabase db = TemporaDatabase.getDatabase(application);
         scheduleDao = db.scheduleDao();
         executorService = Executors.newFixedThreadPool(4);
+        notificationService = new NotificationService(application);
         
         // Initialiser les données en cache
         allSchedules = scheduleDao.getAllSchedules();
@@ -100,8 +105,12 @@ public class ScheduleRepository {
      */
     public void approveSchedule(Schedule schedule) {
         executorService.execute(() -> {
+            // Marquer le planning comme approuvé
             schedule.setApproved(true);
             scheduleDao.update(schedule);
+            
+            // Programmer des notifications pour chaque tâche du planning
+            notificationService.scheduleNotificationsForApprovedSchedule(schedule);
         });
     }
     
