@@ -121,4 +121,12 @@ public class UserProfileViewModel extends AndroidViewModel {
         profile.setCustomCategories(categories);
         repository.update(profile);
     }
+    
+    /**
+     * Restaure le profil utilisateur depuis la sauvegarde si la base de données est vide
+     * @return true si une restauration a été effectuée, false sinon
+     */
+    public boolean restoreFromBackupIfNeeded() {
+        return repository.restoreFromBackupIfNeeded();
+    }
 }

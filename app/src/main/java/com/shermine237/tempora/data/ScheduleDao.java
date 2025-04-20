@@ -37,7 +37,7 @@ public interface ScheduleDao {
     @Query("SELECT * FROM schedules WHERE id = :id")
     LiveData<Schedule> getScheduleById(int id);
     
-    @Query("SELECT * FROM schedules WHERE date = :date LIMIT 1")
+    @Query("SELECT * FROM schedules WHERE strftime('%Y-%m-%d', date / 1000, 'unixepoch') = strftime('%Y-%m-%d', :date / 1000, 'unixepoch') LIMIT 1")
     LiveData<Schedule> getScheduleForDate(Date date);
     
     @Query("SELECT * FROM schedules WHERE date BETWEEN :startDate AND :endDate ORDER BY date ASC")

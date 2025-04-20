@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import com.shermine237.tempora.data.TemporaDatabase;
 import com.shermine237.tempora.data.UserProfileDao;
 import com.shermine237.tempora.model.UserProfile;
+import com.shermine237.tempora.utils.DataBackupManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +20,7 @@ public class UserProfileRepository {
     
     private final UserProfileDao userProfileDao;
     private final ExecutorService executorService;
+    private final DataBackupManager backupManager;
     
     // Données en cache
     private final LiveData<UserProfile> userProfile;
@@ -27,9 +29,17 @@ public class UserProfileRepository {
         TemporaDatabase db = TemporaDatabase.getDatabase(application);
         userProfileDao = db.userProfileDao();
         executorService = Executors.newFixedThreadPool(2);
+        backupManager = new DataBackupManager(application);
         
         // Initialiser les données en cache
         userProfile = userProfileDao.getUserProfile();
+        
+        // Observer le profil utilisateur pour le sauvegarder automatiquement
+        userProfile.observeForever(profile -> {
+            if (profile != null) {
+                backupManager.backupUserProfile(profile);
+            }
+        });
     }
     
     // Méthodes d'accès aux données
@@ -49,21 +59,35 @@ public class UserProfileRepository {
     
     // Méthodes de modification des données
     
+    /**
+     * Insère un nouveau profil utilisateur dans la base de données
+     * @param userProfile Profil utilisateur à insérer
+     */
     public void insert(UserProfile userProfile) {
         executorService.execute(() -> {
             userProfileDao.insert(userProfile);
+            backupManager.backupUserProfile(userProfile);
         });
     }
     
+    /**
+     * Met à jour un profil utilisateur existant dans la base de données
+     * @param userProfile Profil utilisateur à mettre à jour
+     */
     public void update(UserProfile userProfile) {
         executorService.execute(() -> {
             userProfileDao.update(userProfile);
+            backupManager.backupUserProfile(userProfile);
         });
     }
     
+    /**
+     * Supprime tous les profils utilisateurs de la base de données
+     */
     public void deleteAll() {
         executorService.execute(() -> {
             userProfileDao.deleteAll();
+            backupManager.clearUserProfileBackup();
         });
     }
     
@@ -79,5 +103,20 @@ public class UserProfileRepository {
                 userProfileDao.insert(defaultProfile);
             }
         });
+    }
+    
+    /**
+     * Restaure le profil utilisateur depuis la sauvegarde si la base de données est vide
+     * @return true si une restauration a été effectuée, false sinon
+     */
+    public boolean restoreFromBackupIfNeeded() {
+        if (userProfile.getValue() == null && backupManager.hasUserProfileBackup()) {
+            UserProfile restoredProfile = backupManager.restoreUserProfile();
+            if (restoredProfile != null) {
+                insert(restoredProfile);
+                return true;
+            }
+        }
+        return false;
     }
 }

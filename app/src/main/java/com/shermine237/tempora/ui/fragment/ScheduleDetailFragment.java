@@ -22,6 +22,7 @@ import com.shermine237.tempora.viewmodel.ScheduleViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,10 +50,18 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
         // Configurer le RecyclerView
         setupRecyclerView();
         
-        // Récupérer l'ID du planning depuis les arguments
+        // Récupérer la date du planning depuis les arguments
         if (getArguments() != null) {
-            int scheduleId = getArguments().getInt("scheduleId");
-            loadScheduleDetails(scheduleId);
+            if (getArguments().containsKey("scheduleId")) {
+                // Si on a un ID de planning
+                int scheduleId = getArguments().getInt("scheduleId");
+                loadScheduleDetailsById(scheduleId);
+            } else if (getArguments().containsKey("date")) {
+                // Si on a une date
+                long dateMillis = getArguments().getLong("date");
+                Date scheduleDate = new Date(dateMillis);
+                loadScheduleDetailsByDate(scheduleDate);
+            }
         }
         
         // Configurer le bouton d'approbation
@@ -67,8 +76,17 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
         binding.recyclerScheduleItems.setAdapter(scheduleAdapter);
     }
 
-    private void loadScheduleDetails(int scheduleId) {
+    private void loadScheduleDetailsById(int scheduleId) {
         scheduleViewModel.getScheduleById(scheduleId).observe(getViewLifecycleOwner(), schedule -> {
+            if (schedule != null) {
+                currentSchedule = schedule;
+                updateUI(schedule);
+            }
+        });
+    }
+
+    private void loadScheduleDetailsByDate(Date scheduleDate) {
+        scheduleViewModel.getScheduleByDate(scheduleDate).observe(getViewLifecycleOwner(), schedule -> {
             if (schedule != null) {
                 currentSchedule = schedule;
                 updateUI(schedule);

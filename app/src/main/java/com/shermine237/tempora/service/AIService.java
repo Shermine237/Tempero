@@ -116,12 +116,13 @@ public class AIService {
     }
     
     /**
-     * Génère un planning pour une journée donnée
-     * @param date Date pour laquelle générer le planning
+     * Génère un planning optimisé pour une journée donnée
      */
     public void generateScheduleForDate(Date date) {
         executor.execute(() -> {
             try {
+                Log.i(TAG, "Starting schedule generation for date: " + date);
+                
                 // Récupérer le profil utilisateur
                 UserProfile userProfile = userProfileRepository.getUserProfile().getValue();
                 
@@ -141,20 +142,59 @@ public class AIService {
                 
                 if (incompleteTasks == null || incompleteTasks.isEmpty()) {
                     Log.i(TAG, "No incomplete tasks to schedule");
-                    return;
+                    // Créer quelques tâches factices pour la démonstration
+                    incompleteTasks = createDemoTasks();
+                    
+                    // Enregistrer les tâches de démonstration dans la base de données
+                    for (Task task : incompleteTasks) {
+                        taskRepository.insert(task);
+                    }
                 }
+                
+                Log.i(TAG, "Found " + incompleteTasks.size() + " tasks to schedule");
                 
                 // Générer le planning
                 Schedule schedule = scheduler.generateSchedule(date, incompleteTasks);
                 
-                // Enregistrer le planning
-                scheduleRepository.insert(schedule);
+                Log.i(TAG, "Schedule generated with " + schedule.getItems().size() + " items");
+                
+                // Normaliser la date pour ignorer l'heure
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                schedule.setDate(calendar.getTime());
+                
+                // Vérifier si un planning existe déjà pour cette date
+                Schedule existingSchedule = null;
+                try {
+                    existingSchedule = scheduleRepository.getScheduleForDate(calendar.getTime()).getValue();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error getting existing schedule", e);
+                }
+                
+                if (existingSchedule != null) {
+                    Log.i(TAG, "Updating existing schedule for date: " + date);
+                    // Mettre à jour le planning existant
+                    existingSchedule.setItems(schedule.getItems());
+                    scheduleRepository.update(existingSchedule);
+                } else {
+                    Log.i(TAG, "Inserting new schedule for date: " + date);
+                    // Enregistrer le nouveau planning
+                    scheduleRepository.insert(schedule);
+                }
                 
                 // Envoyer une notification
-                notificationService.notifyDailySchedule(schedule);
+                handler.post(() -> {
+                    notificationService.notifyDailySchedule(schedule);
+                });
                 
                 // Vérifier la surcharge potentielle
                 checkForOverload(schedule);
+                
+                Log.i(TAG, "Schedule generation completed successfully");
                 
             } catch (Exception e) {
                 Log.e(TAG, "Error generating schedule", e);
@@ -220,6 +260,67 @@ public class AIService {
         } catch (Exception e) {
             Log.e(TAG, "Error generating productivity tips", e);
         }
+    }
+    
+    /**
+     * Crée des tâches de démonstration pour tester la génération de planning
+     */
+    private List<Task> createDemoTasks() {
+        List<Task> demoTasks = new ArrayList<>();
+        
+        // Obtenir la date du jour
+        Calendar calendar = Calendar.getInstance();
+        Date today = calendar.getTime();
+        
+        // Tâche 1: Réunion d'équipe (haute priorité)
+        Task task1 = new Task(
+            "Réunion d'équipe",
+            "Discuter des objectifs hebdomadaires",
+            today,
+            4, // priorité
+            3, // difficulté
+            60, // durée estimée en minutes
+            "Travail"
+        );
+        demoTasks.add(task1);
+        
+        // Tâche 2: Préparer présentation (priorité moyenne)
+        Task task2 = new Task(
+            "Préparer présentation",
+            "Finaliser les slides pour la réunion client",
+            today,
+            3, // priorité
+            3, // difficulté
+            90, // durée estimée en minutes
+            "Travail"
+        );
+        demoTasks.add(task2);
+        
+        // Tâche 3: Répondre aux emails (faible priorité)
+        Task task3 = new Task(
+            "Répondre aux emails",
+            "Traiter les emails en attente",
+            today,
+            2, // priorité
+            1, // difficulté
+            45, // durée estimée en minutes
+            "Travail"
+        );
+        demoTasks.add(task3);
+        
+        // Tâche 4: Séance de sport (priorité moyenne)
+        Task task4 = new Task(
+            "Séance de sport",
+            "30 minutes de cardio",
+            today,
+            3, // priorité
+            2, // difficulté
+            30, // durée estimée en minutes
+            "Personnel"
+        );
+        demoTasks.add(task4);
+        
+        return demoTasks;
     }
     
     /**

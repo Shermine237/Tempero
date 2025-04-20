@@ -48,6 +48,11 @@ dependencies {
     // UI components
     implementation(libs.androidx.recyclerview)
     
+    // Material Calendar View - version compatible avec AndroidX
+    implementation('com.github.prolificinteractive:material-calendarview:2.0.1') {
+        exclude group: 'com.android.support'
+    }
+    
     // Navigation components
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)

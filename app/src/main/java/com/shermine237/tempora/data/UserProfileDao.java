@@ -24,7 +24,7 @@ public interface UserProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = 1")
     LiveData<UserProfile> getUserProfile();
     
-    @Query("SELECT * FROM user_profile WHERE email = :email LIMIT 1")
+    @Query("SELECT * FROM user_profile WHERE LOWER(email) = LOWER(:email) LIMIT 1")
     LiveData<UserProfile> getUserProfileByEmail(String email);
     
     @Query("DELETE FROM user_profile")

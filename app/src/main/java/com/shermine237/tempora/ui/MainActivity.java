@@ -100,8 +100,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // Marquer l'application comme inactive lorsqu'elle est arrêtée
-        setAppActive(false);
+        // Ne pas marquer l'application comme inactive ici
+        // Nous mettons simplement à jour le temps de dernière activité
+        updateLastActiveTime();
     }
     
     @Override

@@ -59,6 +59,13 @@ public class ScheduleViewModel extends AndroidViewModel {
         return repository.getScheduleForDate(date);
     }
     
+    /**
+     * Alias pour getScheduleForDate pour une meilleure lisibilité dans le code
+     */
+    public LiveData<Schedule> getScheduleByDate(Date date) {
+        return getScheduleForDate(date);
+    }
+    
     public LiveData<List<Schedule>> getSchedulesForDateRange(Date startDate, Date endDate) {
         return repository.getSchedulesForDateRange(startDate, endDate);
     }

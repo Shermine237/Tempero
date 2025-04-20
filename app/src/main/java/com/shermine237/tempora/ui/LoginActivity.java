@@ -18,6 +18,9 @@ import com.shermine237.tempora.databinding.ActivityLoginBinding;
 import com.shermine237.tempora.model.UserProfile;
 import com.shermine237.tempora.viewmodel.UserProfileViewModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Activité de connexion pour les utilisateurs existants
  */
@@ -166,9 +169,19 @@ public class LoginActivity extends AppCompatActivity {
      * Vérifie les informations d'identification de l'utilisateur
      */
     private void verifyCredentials(String email, String password) {
+        // Afficher l'indicateur de chargement
+        binding.progressBar.setVisibility(View.VISIBLE);
+        binding.buttonLogin.setEnabled(false);
+        
+        // Essayer de restaurer les données depuis la sauvegarde si nécessaire
+        boolean restored = userProfileViewModel.restoreFromBackupIfNeeded();
+        if (restored) {
+            Log.i(TAG, "Profil utilisateur restauré depuis la sauvegarde");
+        }
+        
         // Simuler une vérification d'identifiants avec un délai
         new Handler().postDelayed(() -> {
-            // Rechercher l'utilisateur par email
+            // Récupérer le profil utilisateur par email
             userProfileViewModel.getUserProfileByEmail(email).observe(this, userProfile -> {
                 if (userProfile != null) {
                     // Dans une application réelle, nous vérifierions le mot de passe haché
@@ -179,10 +192,68 @@ public class LoginActivity extends AppCompatActivity {
                         loginFailed("Mot de passe incorrect");
                     }
                 } else {
-                    loginFailed("Aucun compte trouvé avec cette adresse email");
+                    // Si aucun profil n'est trouvé, vérifier s'il y a un profil par défaut
+                    checkForDefaultProfile(email, password);
                 }
             });
         }, 1500); // Délai de 1.5 secondes pour simuler une vérification
+    }
+    
+    /**
+     * Vérifie s'il existe un profil par défaut et l'utilise pour la connexion
+     */
+    private void checkForDefaultProfile(String email, String password) {
+        userProfileViewModel.getUserProfile().observe(this, defaultProfile -> {
+            if (defaultProfile != null) {
+                // Mettre à jour l'email du profil par défaut
+                defaultProfile.setEmail(email);
+                userProfileViewModel.update(defaultProfile);
+                
+                // Connecter l'utilisateur avec le profil mis à jour
+                loginSuccess(email, defaultProfile);
+            } else {
+                // Si aucun profil n'existe, créer un nouveau profil
+                createNewProfile(email, password);
+            }
+        });
+    }
+    
+    /**
+     * Crée un nouveau profil utilisateur
+     */
+    private void createNewProfile(String email, String password) {
+        // Créer un profil utilisateur par défaut
+        UserProfile userProfile = new UserProfile("Utilisateur", email);
+        
+        // Définir des valeurs par défaut pour les préférences
+        userProfile.setPreferredWorkStartHour(9); // 9h00
+        userProfile.setPreferredWorkEndHour(17);  // 17h00
+        userProfile.setShortBreakDuration(15);    // 15 minutes
+        userProfile.setLongBreakDuration(30);     // 30 minutes
+        userProfile.setWorkSessionsBeforeLongBreak(4); // 4 sessions avant une pause longue
+        
+        // Initialiser les jours de travail (lundi à vendredi par défaut)
+        List<Integer> workDays = new ArrayList<>();
+        workDays.add(1); // Lundi
+        workDays.add(2); // Mardi
+        workDays.add(3); // Mercredi
+        workDays.add(4); // Jeudi
+        workDays.add(5); // Vendredi
+        userProfile.setWorkDays(workDays);
+        
+        // Initialiser les catégories personnalisées
+        List<String> customCategories = new ArrayList<>();
+        customCategories.add("Travail");
+        customCategories.add("Personnel");
+        customCategories.add("Études");
+        customCategories.add("Santé");
+        userProfile.setCustomCategories(customCategories);
+        
+        // Enregistrer le profil utilisateur
+        userProfileViewModel.insert(userProfile);
+        
+        // Connecter l'utilisateur avec le nouveau profil
+        loginSuccess(email, userProfile);
     }
     
     /**

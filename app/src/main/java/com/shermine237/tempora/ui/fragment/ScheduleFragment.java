@@ -1,10 +1,10 @@
 package com.shermine237.tempora.ui.fragment;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CalendarView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,22 +13,28 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+import com.prolificinteractive.materialcalendarview.OnDateSelectedListener;
 import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.FragmentScheduleBinding;
 import com.shermine237.tempora.model.Schedule;
 import com.shermine237.tempora.model.ScheduleItem;
 import com.shermine237.tempora.service.AIService;
 import com.shermine237.tempora.ui.adapter.ScheduleAdapter;
+import com.shermine237.tempora.ui.decorator.ScheduleDateDecorator;
 import com.shermine237.tempora.viewmodel.ScheduleViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
-public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnScheduleItemClickListener {
+public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnScheduleItemClickListener, OnDateSelectedListener {
 
     private FragmentScheduleBinding binding;
     private ScheduleViewModel scheduleViewModel;
@@ -36,6 +42,7 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     private AIService aiService;
     private Date selectedDate;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy", Locale.FRENCH);
+    private ScheduleDateDecorator scheduleDateDecorator;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,12 +85,43 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     }
 
     private void setupCalendar() {
-        binding.calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(year, month, dayOfMonth);
-            selectedDate = calendar.getTime();
-            // Nous avons supprimé l'appel à updateDateDisplay() car le TextView a été supprimé
-            loadScheduleForSelectedDate();
+        // Initialiser le décorateur avec un ensemble vide
+        scheduleDateDecorator = new ScheduleDateDecorator(requireContext(), new HashSet<>());
+        binding.calendarView.addDecorator(scheduleDateDecorator);
+        
+        // Configurer le listener de sélection de date
+        binding.calendarView.setOnDateChangedListener(this);
+        
+        // Sélectionner la date du jour
+        CalendarDay today = CalendarDay.today();
+        binding.calendarView.setDateSelected(today, true);
+        
+        // Charger les dates avec des plannings
+        loadScheduleDates();
+    }
+
+    private void loadScheduleDates() {
+        scheduleViewModel.getAllSchedules().observe(getViewLifecycleOwner(), schedules -> {
+            if (schedules != null && !schedules.isEmpty()) {
+                Set<CalendarDay> scheduleDates = new HashSet<>();
+                
+                for (Schedule schedule : schedules) {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(schedule.getDate());
+                    
+                    CalendarDay day = CalendarDay.from(
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH) + 1, // MaterialCalendarView utilise 1-12 pour les mois
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                    );
+                    
+                    scheduleDates.add(day);
+                }
+                
+                // Mettre à jour le décorateur avec les nouvelles dates
+                scheduleDateDecorator.setDates(scheduleDates);
+                binding.calendarView.invalidateDecorators();
+            }
         });
     }
 
@@ -109,8 +147,23 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     }
 
     private void generateSchedule() {
+        // Afficher un indicateur de chargement
+        binding.textEmptySchedule.setText("Génération du planning en cours...");
+        binding.textEmptySchedule.setVisibility(View.VISIBLE);
+        binding.recyclerSchedule.setVisibility(View.GONE);
+        
+        // Désactiver le bouton pendant la génération
+        binding.fabGenerateSchedule.setEnabled(false);
+        
+        // Générer le planning
         aiService.generateScheduleForDate(selectedDate);
-        // Un message de chargement pourrait être affiché ici
+        
+        // Attendre un peu puis recharger le planning
+        new Handler().postDelayed(() -> {
+            loadScheduleForSelectedDate();
+            loadScheduleDates(); // Recharger les dates avec des plannings
+            binding.fabGenerateSchedule.setEnabled(true);
+        }, 3000); // Attendre 3 secondes avant de recharger
     }
 
     @Override
@@ -150,16 +203,30 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
             // Vérifier si tous les éléments sont complétés
             boolean allCompleted = true;
             for (ScheduleItem scheduleItem : items) {
-                if (!scheduleItem.isCompleted() && scheduleItem.getType().equals("task")) {
+                if (!scheduleItem.isCompleted()) {
                     allCompleted = false;
                     break;
                 }
             }
             
             if (allCompleted) {
+                // Marquer le planning comme complété
                 currentSchedule.setCompleted(true);
                 scheduleViewModel.update(currentSchedule);
             }
+        }
+    }
+
+    @Override
+    public void onDateSelected(@NonNull MaterialCalendarView widget, @NonNull CalendarDay date, boolean selected) {
+        if (selected) {
+            // Convertir CalendarDay en Date
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(date.getYear(), date.getMonth() - 1, date.getDay()); // Ajuster le mois (0-11)
+            selectedDate = calendar.getTime();
+            
+            // Charger le planning pour la date sélectionnée
+            loadScheduleForSelectedDate();
         }
     }
 
