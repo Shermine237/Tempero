@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.shermine237.tempora.R;
@@ -73,6 +74,11 @@ public class ProfileFragment extends Fragment implements CategoryAdapter.Categor
         // Configurer le bouton d'ajout de catégorie
         binding.buttonAddCategory.setOnClickListener(v -> {
             addCategory();
+        });
+        
+        // Configurer le bouton des heures de travail par jour
+        binding.buttonWorkHours.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.action_navigation_profile_to_work_hours);
         });
     }
 

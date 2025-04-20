@@ -89,6 +89,14 @@
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
+                    <Button
+                        android:id="@+id/button_work_hours"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Configurer les heures de travail par jour"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

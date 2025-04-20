@@ -7,8 +7,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.shermine237.tempora.model.UserProfile;
+import com.shermine237.tempora.model.WorkHours;
 import com.shermine237.tempora.repository.UserProfileRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,6 +74,32 @@ public class UserProfileViewModel extends AndroidViewModel {
         profile.setPreferredWorkStartHour(startHour);
         profile.setPreferredWorkEndHour(endHour);
         profile.setWorkDays(workDays);
+        
+        // Mettre à jour également les heures de travail par jour si elles existent
+        if (profile.getWorkHoursByDay() != null) {
+            List<WorkHours> workHoursList = profile.getWorkHoursByDay();
+            for (WorkHours workHours : workHoursList) {
+                // Mettre à jour les heures de début et de fin pour les jours de travail
+                if (workDays.contains(workHours.getDayOfWeek())) {
+                    workHours.setStartHour(startHour);
+                    workHours.setEndHour(endHour);
+                    workHours.setWorkDay(true);
+                } else {
+                    workHours.setWorkDay(false);
+                }
+            }
+            profile.setWorkHoursByDay(workHoursList);
+        } else {
+            // Créer des heures de travail par jour si elles n'existent pas
+            List<WorkHours> workHoursList = new ArrayList<>();
+            for (int i = 0; i < 7; i++) {
+                boolean isWorkDay = workDays.contains(i);
+                WorkHours workHours = new WorkHours(i, startHour, endHour, isWorkDay);
+                workHoursList.add(workHours);
+            }
+            profile.setWorkHoursByDay(workHoursList);
+        }
+        
         repository.update(profile);
     }
     

@@ -13,13 +13,14 @@ import com.shermine237.tempora.model.UserProfile;
 import com.shermine237.tempora.utils.DateConverter;
 import com.shermine237.tempora.utils.ScheduleItemListConverter;
 import com.shermine237.tempora.utils.StringListConverter;
+import com.shermine237.tempora.utils.WorkHoursListConverter;
 
 /**
  * Base de données principale de l'application Tempero.
  * Cette classe gère la création et la mise à jour de la base de données SQLite.
  */
-@Database(entities = {Task.class, UserProfile.class, Schedule.class}, version = 2, exportSchema = false)
-@TypeConverters({DateConverter.class, StringListConverter.class, ScheduleItemListConverter.class})
+@Database(entities = {Task.class, UserProfile.class, Schedule.class}, version = 3, exportSchema = false)
+@TypeConverters({DateConverter.class, StringListConverter.class, ScheduleItemListConverter.class, WorkHoursListConverter.class})
 public abstract class TemporaDatabase extends RoomDatabase {
     
     // DAOs

@@ -41,7 +41,11 @@
         android:id="@+id/navigation_profile"
         android:name="com.shermine237.tempora.ui.fragment.ProfileFragment"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_navigation_profile_to_work_hours"
+            app:destination="@id/navigation_work_hours" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_task_detail"
@@ -64,5 +68,11 @@
             android:id="@+id/action_navigation_schedule_detail_to_navigation_task_detail"
             app:destination="@id/navigation_task_detail" />
     </fragment>
+
+    <fragment
+        android:id="@+id/navigation_work_hours"
+        android:name="com.shermine237.tempora.ui.fragment.WorkHoursFragment"
+        android:label="Heures de travail"
+        tools:layout="@layout/fragment_work_hours" />
 
 </navigation>

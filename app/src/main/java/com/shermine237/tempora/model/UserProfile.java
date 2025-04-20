@@ -6,6 +6,7 @@ import androidx.room.TypeConverters;
 
 import com.shermine237.tempora.utils.DateConverter;
 import com.shermine237.tempora.utils.StringListConverter;
+import com.shermine237.tempora.utils.WorkHoursListConverter;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,9 +24,13 @@ public class UserProfile {
     private String name;
     private String email;
     
-    // Préférences de travail
+    // Préférences de travail (conservées pour la compatibilité avec les versions antérieures)
     private int preferredWorkStartHour; // Heure préférée pour commencer à travailler (0-23)
     private int preferredWorkEndHour; // Heure préférée pour terminer de travailler (0-23)
+    
+    // Heures de travail par jour
+    @TypeConverters(WorkHoursListConverter.class)
+    private List<WorkHours> workHoursByDay;
     
     // Préférences de pause
     private int shortBreakDuration; // Durée des pauses courtes en minutes
@@ -58,6 +63,14 @@ public class UserProfile {
         this.workDays = new ArrayList<>();
         for (int i = 1; i <= 5; i++) {
             this.workDays.add(i);
+        }
+        
+        // Initialiser les heures de travail par jour
+        this.workHoursByDay = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            boolean isWorkDay = i >= 1 && i <= 5; // Du lundi au vendredi
+            WorkHours workHours = new WorkHours(i, 9, 17, isWorkDay);
+            this.workHoursByDay.add(workHours);
         }
         
         // Catégories par défaut
@@ -157,5 +170,80 @@ public class UserProfile {
     
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+    
+    public List<WorkHours> getWorkHoursByDay() {
+        return workHoursByDay;
+    }
+    
+    public void setWorkHoursByDay(List<WorkHours> workHoursByDay) {
+        this.workHoursByDay = workHoursByDay;
+    }
+    
+    /**
+     * Obtient les heures de travail pour un jour spécifique
+     * @param dayOfWeek Jour de la semaine (0-6)
+     * @return Heures de travail pour ce jour
+     */
+    public WorkHours getWorkHoursForDay(int dayOfWeek) {
+        if (workHoursByDay == null) {
+            workHoursByDay = new ArrayList<>();
+            for (int i = 0; i < 7; i++) {
+                boolean isWorkDay = workDays.contains(i);
+                WorkHours workHours = new WorkHours(i, preferredWorkStartHour, preferredWorkEndHour, isWorkDay);
+                workHoursByDay.add(workHours);
+            }
+        }
+        
+        for (WorkHours workHours : workHoursByDay) {
+            if (workHours.getDayOfWeek() == dayOfWeek) {
+                return workHours;
+            }
+        }
+        
+        // Si aucune heure de travail n'est trouvée pour ce jour, en créer une nouvelle
+        WorkHours workHours = new WorkHours(dayOfWeek, preferredWorkStartHour, preferredWorkEndHour, workDays.contains(dayOfWeek));
+        workHoursByDay.add(workHours);
+        return workHours;
+    }
+    
+    /**
+     * Met à jour les heures de travail pour un jour spécifique
+     * @param workHours Heures de travail à mettre à jour
+     */
+    public void updateWorkHoursForDay(WorkHours workHours) {
+        if (workHoursByDay == null) {
+            workHoursByDay = new ArrayList<>();
+        }
+        
+        // Rechercher si les heures de travail pour ce jour existent déjà
+        for (int i = 0; i < workHoursByDay.size(); i++) {
+            if (workHoursByDay.get(i).getDayOfWeek() == workHours.getDayOfWeek()) {
+                workHoursByDay.set(i, workHours);
+                
+                // Mettre à jour la liste des jours de travail
+                if (workHours.isWorkDay()) {
+                    if (!workDays.contains(workHours.getDayOfWeek())) {
+                        workDays.add(workHours.getDayOfWeek());
+                    }
+                } else {
+                    workDays.remove(Integer.valueOf(workHours.getDayOfWeek()));
+                }
+                
+                return;
+            }
+        }
+        
+        // Si aucune heure de travail n'est trouvée pour ce jour, en ajouter une nouvelle
+        workHoursByDay.add(workHours);
+        
+        // Mettre à jour la liste des jours de travail
+        if (workHours.isWorkDay()) {
+            if (!workDays.contains(workHours.getDayOfWeek())) {
+                workDays.add(workHours.getDayOfWeek());
+            }
+        } else {
+            workDays.remove(Integer.valueOf(workHours.getDayOfWeek()));
+        }
     }
 }
