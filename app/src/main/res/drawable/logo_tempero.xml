@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Fond -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M0,0h108v108h-108z" />
+    
+    <!-- Cercle extérieur -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,24C37.44,24 24,37.44 24,54C24,70.56 37.44,84 54,84C70.56,84 84,70.56 84,54C84,37.44 70.56,24 54,24Z" />
+    
+    <!-- Cercle intérieur -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30C40.74,30 30,40.74 30,54C30,67.26 40.74,78 54,78C67.26,78 78,67.26 78,54C78,40.74 67.26,30 54,30Z" />
+    
+    <!-- Aiguille des heures -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,54L54,39" 
+        android:strokeWidth="3"
+        android:strokeColor="#3F51B5"
+        android:strokeLineCap="round" />
+    
+    <!-- Aiguille des minutes -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,54L66,54" 
+        android:strokeWidth="3"
+        android:strokeColor="#3F51B5"
+        android:strokeLineCap="round" />
+    
+    <!-- Élément graphique représentant l'IA -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M54,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    
+    <!-- Éléments décoratifs représentant la planification -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,54m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    
+    <!-- Marques des heures -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,33L54,30" 
+        android:strokeWidth="2"
+        android:strokeColor="#3F51B5" />
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M54,78L54,75" 
+        android:strokeWidth="2"
+        android:strokeColor="#3F51B5" />
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M33,54L30,54" 
+        android:strokeWidth="2"
+        android:strokeColor="#3F51B5" />
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M78,54L75,54" 
+        android:strokeWidth="2"
+        android:strokeColor="#3F51B5" />
+    
+    <!-- Texte "TEMPERO" -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M30,92L78,92"
+        android:strokeWidth="2"
+        android:strokeColor="#3F51B5" />
+    
+    <!-- Éléments graphiques représentant l'intelligence -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M38,94m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M54,94m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M70,94m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+</vector>

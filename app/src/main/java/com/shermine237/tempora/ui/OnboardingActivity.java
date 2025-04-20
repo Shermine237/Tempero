@@ -109,7 +109,7 @@ public class OnboardingActivity extends AppCompatActivity {
         userProfileViewModel.insert(profile);
 
         // Marquer l'onboarding comme terminé
-        SharedPreferences prefs = getSharedPreferences("TemporaPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean("onboarding_completed", true);
         editor.apply();

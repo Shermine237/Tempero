@@ -19,19 +19,28 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private UserProfileRepository userProfileRepository;
+    private static final String PREFS_NAME = "TemporaPrefs";
+    private static final String KEY_FIRST_LAUNCH = "firstLaunch";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Initialiser le repository du profil utilisateur
+        userProfileRepository = new UserProfileRepository(getApplication());
+        
+        // Vérifier si c'est la première utilisation de l'application
+        if (isFirstLaunch()) {
+            // Rediriger vers l'activité de création de compte
+            startCreateAccountActivity();
+            return;
+        }
         
         // Vérifier si l'onboarding a été effectué
         if (!isOnboardingCompleted()) {
             startOnboarding();
             return;
         }
-        
-        // Initialiser le profil utilisateur
-        initializeUserProfile();
         
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -60,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
      * Vérifie si l'onboarding a été effectué
      */
     private boolean isOnboardingCompleted() {
-        SharedPreferences prefs = getSharedPreferences("TemporaPrefs", MODE_PRIVATE);
-        return prefs.getBoolean("onboarding_completed", false);
+        SharedPreferences preferences = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
+        return preferences.getBoolean("onboarding_completed", false);
     }
     
     /**
@@ -70,16 +79,33 @@ public class MainActivity extends AppCompatActivity {
     private void startOnboarding() {
         Intent intent = new Intent(this, OnboardingActivity.class);
         startActivity(intent);
-        finish();
+        finish(); // Terminer l'activité actuelle
     }
     
     /**
      * Initialise le profil utilisateur
      */
     private void initializeUserProfile() {
-        userProfileRepository = new UserProfileRepository(getApplication());
-        
-        // Nous avons supprimé la partie concernant le thème car elle n'est pas encore implémentée
+        // Cette méthode n'est plus utilisée car nous vérifions le premier lancement
+        // directement dans onCreate
+    }
+    
+    /**
+     * Vérifie si c'est la première fois que l'application est lancée
+     */
+    private boolean isFirstLaunch() {
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        // Par défaut, c'est la première fois (true)
+        return preferences.getBoolean(KEY_FIRST_LAUNCH, true);
+    }
+    
+    /**
+     * Démarre l'activité de création de compte
+     */
+    private void startCreateAccountActivity() {
+        Intent intent = new Intent(this, CreateAccountActivity.class);
+        startActivity(intent);
+        finish();
     }
     
     @Override

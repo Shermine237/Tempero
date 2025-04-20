@@ -48,8 +48,8 @@ public class TasksFragment extends Fragment implements TaskAdapter.OnTaskClickLi
         
         // Configurer le bouton d'ajout de tâche
         binding.fabAddTask.setOnClickListener(v -> {
-            // Navigation directe vers la destination au lieu d'utiliser l'action
-            Navigation.findNavController(v).navigate(R.id.navigation_task_create);
+            // Utiliser l'action définie dans le fichier de navigation
+            Navigation.findNavController(v).navigate(R.id.action_navigation_tasks_to_task_create);
         });
     }
 

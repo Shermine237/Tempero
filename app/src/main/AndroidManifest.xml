@@ -25,6 +25,10 @@
             android:name=".ui.OnboardingActivity"
             android:exported="false"
             android:theme="@style/Theme.Tempora" />
+        <activity
+            android:name=".ui.CreateAccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Tempora" />
     </application>
 
 </manifest>
