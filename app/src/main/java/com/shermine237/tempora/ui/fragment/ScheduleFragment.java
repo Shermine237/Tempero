@@ -103,9 +103,32 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
     @Override
     public void onResume() {
         super.onResume();
+        // Réinitialiser la vue à l'état d'origine avec le calendrier visible
+        resetView();
+        
         // Recharger les données à chaque fois que le fragment devient visible
         loadScheduleForSelectedDate();
         loadScheduleDates();
+    }
+
+    /**
+     * Réinitialise la vue à l'état d'origine avec le calendrier visible
+     */
+    private void resetView() {
+        // Afficher le calendrier
+        binding.calendarView.setVisibility(View.VISIBLE);
+        
+        // Masquer le planning s'il est vide
+        if (scheduleAdapter.getItemCount() == 0) {
+            binding.textEmptySchedule.setVisibility(View.VISIBLE);
+            binding.recyclerSchedule.setVisibility(View.GONE);
+        }
+        
+        // Réinitialiser le titre à la date sélectionnée
+        binding.textSelectedDate.setText(dateFormat.format(selectedDate));
+        
+        // Log pour le débogage
+        Log.d("ScheduleFragment", "Vue réinitialisée à l'état d'origine");
     }
 
     private void loadScheduleDates() {
@@ -187,8 +210,9 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         endCal.add(Calendar.MINUTE, task.getEstimatedDuration());
         Date endTime = endCal.getTime();
         
-        // Créer un élément de planning avec l'ID de la tâche et marquer comme planifié manuellement
-        return new ScheduleItem(task.getId(), task.getTitle(), startTime, endTime, true);
+        // Créer un élément de planning avec l'ID de la tâche
+        // Utiliser l'attribut aiGenerated pour déterminer si la tâche a été générée par l'IA
+        return new ScheduleItem(task.getId(), task.getTitle(), startTime, endTime, !task.isAiGenerated());
     }
 
     private void updateScheduleList(List<ScheduleItem> items) {
