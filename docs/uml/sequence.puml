@@ -1,0 +1,46 @@
+@startuml
+actor User
+participant "UI" as ui
+participant "TaskViewModel" as vm
+participant "AIService" as ai
+participant "AIBackendService" as backend
+participant "UserHabitAnalyzer" as analyzer
+participant "WeatherService" as weather
+participant "CalendarService" as calendar
+
+User -> ui : Demande génération planning
+activate ui
+ui -> vm : generateSchedule()
+activate vm
+vm -> ai : generateSuggestions()
+activate ai
+
+ai -> backend : analyzeTasks()
+activate backend
+backend -> analyzer : analyzePatterns()
+activate analyzer
+analyzer --> backend : patterns
+deactivate analyzer
+
+backend -> weather : getWeatherForecast()
+activate weather
+weather --> backend : forecast
+deactivate weather
+
+backend -> calendar : checkConflicts()
+activate calendar
+calendar --> backend : conflicts
+deactivate calendar
+
+backend --> ai : suggestions
+deactivate backend
+
+ai --> vm : optimizedSchedule
+deactivate ai
+
+vm --> ui : updatedSchedule
+deactivate vm
+
+ui --> User : Affiche planning
+deactivate ui
+@enduml

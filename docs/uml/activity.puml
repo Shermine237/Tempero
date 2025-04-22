@@ -1,0 +1,35 @@
+@startuml
+start
+:Utilisateur demande un planning;
+
+fork
+  :Analyser habitudes utilisateur;
+  :Identifier patterns récurrents;
+fork again
+  :Vérifier météo;
+fork again
+  :Vérifier calendrier;
+fork again
+  :Vérifier localisation;
+end fork
+
+:Générer suggestions de tâches;
+
+if (Conflits détectés?) then (oui)
+  :Ajuster planning;
+else (non)
+  :Conserver planning initial;
+endif
+
+:Présenter planning à l'utilisateur;
+
+if (Utilisateur approuve?) then (oui)
+  :Enregistrer planning;
+  :Créer notifications;
+else (non)
+  :Permettre modifications;
+  :Enregistrer feedback;
+endif
+
+stop
+@enduml

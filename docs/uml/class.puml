@@ -1,0 +1,75 @@
+@startuml
+package "Model" {
+  class Task {
+    -title: String
+    -description: String
+    -dueDate: Date
+    -priority: int
+    -category: String
+    -completed: boolean
+    +getTitle()
+    +setTitle()
+    +complete()
+    +postpone()
+  }
+  
+  class UserProfile {
+    -name: String
+    -preferences: UserPreferences
+    -workHours: WorkHours
+    +updatePreferences()
+    +getWorkHours()
+  }
+  
+  class Schedule {
+    -date: Date
+    -items: List<ScheduleItem>
+    +addItem()
+    +removeItem()
+    +optimize()
+  }
+}
+
+package "AI" {
+  class AIBackendService {
+    -habitAnalyzer: UserHabitAnalyzer
+    -weatherService: WeatherService
+    -calendarService: CalendarIntegrationService
+    -locationService: LocationService
+    +generateTasks()
+    +analyzeTasks()
+    +predictDuration()
+  }
+  
+  class UserHabitAnalyzer {
+    -activities: List<UserActivity>
+    +analyzePatterns()
+    +predictTaskDuration()
+    +getTaskSuccessRate()
+  }
+  
+  class TaskPatternRecognizer {
+    +identifyPatterns()
+    +suggestTasks()
+  }
+}
+
+package "Service" {
+  class AIService {
+    -backend: AIBackendService
+    +generateSuggestions()
+    +optimizeSchedule()
+  }
+  
+  class NotificationService {
+    +sendReminder()
+    +notifyChanges()
+  }
+}
+
+Task "1" -- "1..*" Schedule
+UserProfile "1" -- "1" WorkHours
+AIBackendService "1" -- "1" UserHabitAnalyzer
+AIBackendService "1" -- "1" TaskPatternRecognizer
+AIService "1" -- "1" AIBackendService
+@enduml

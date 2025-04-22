@@ -1,0 +1,39 @@
+@startuml
+package "UI Layer" {
+  [Activities]
+  [Fragments]
+  [ViewModels]
+}
+
+package "Business Layer" {
+  [AIService]
+  [TaskManager]
+  [NotificationService]
+}
+
+package "AI Layer" {
+  [AIBackendService]
+  [PatternRecognizer]
+  [HabitAnalyzer]
+}
+
+package "External Services" {
+  [WeatherService]
+  [CalendarService]
+  [LocationService]
+}
+
+database "Local Storage" {
+  [Room Database]
+}
+
+[Activities] --> [ViewModels]
+[ViewModels] --> [AIService]
+[AIService] --> [AIBackendService]
+[AIBackendService] --> [PatternRecognizer]
+[AIBackendService] --> [HabitAnalyzer]
+[AIBackendService] --> [WeatherService]
+[AIBackendService] --> [CalendarService]
+[AIBackendService] --> [LocationService]
+[TaskManager] --> [Room Database]
+@enduml

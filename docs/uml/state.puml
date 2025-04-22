@@ -1,0 +1,18 @@
+@startuml
+[*] --> NonPlanifiée
+
+state NonPlanifiée {
+  [*] --> EnAttente
+  EnAttente --> Suggérée : IA génère suggestion
+}
+
+state Planifiée {
+  Suggérée --> Approuvée : Utilisateur approuve
+  Approuvée --> EnCours : Heure de début
+  EnCours --> Complétée : Utilisateur termine
+  EnCours --> Reportée : Utilisateur reporte
+}
+
+Reportée --> NonPlanifiée : Replanification
+Complétée --> [*]
+@enduml

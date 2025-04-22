@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+actor "Utilisateur" as user
+actor "Système IA" as ai
+
+rectangle "Application Tempora" {
+  usecase "Gérer les tâches" as UC1
+  usecase "Consulter le planning" as UC2
+  usecase "Personnaliser les préférences" as UC3
+  usecase "Analyser les statistiques" as UC4
+  usecase "Générer des suggestions" as UC5
+  usecase "Gérer le profil" as UC6
+  usecase "Approuver les tâches IA" as UC7
+  usecase "Analyser les habitudes" as UC8
+  usecase "Vérifier la météo" as UC9
+  usecase "Vérifier le calendrier" as UC10
+  usecase "Analyser la localisation" as UC11
+}
+
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+user --> UC6
+user --> UC7
+
+ai --> UC5
+ai --> UC8
+ai --> UC9
+ai --> UC10
+ai --> UC11
+
+UC5 ..> UC8 : <<include>>
+UC5 ..> UC9 : <<include>>
+UC5 ..> UC10 : <<include>>
+UC5 ..> UC11 : <<include>>
+@enduml

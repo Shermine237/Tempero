@@ -1,0 +1,21 @@
+@startuml
+node "Appareil Android" {
+  artifact "Application Tempora" {
+    component [UI Layer]
+    component [Business Layer]
+    component [AI Layer]
+    database "SQLite DB"
+  }
+}
+
+cloud "Services Externes" {
+  [Service Météo]
+  [Service Calendrier]
+  [Service Localisation]
+}
+
+[AI Layer] --> [Service Météo] : HTTPS
+[AI Layer] --> [Service Calendrier] : HTTPS
+[AI Layer] --> [Service Localisation] : HTTPS
+[Business Layer] --> [SQLite DB]
+@enduml
