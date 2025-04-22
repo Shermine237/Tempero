@@ -572,4 +572,34 @@ public class AIService {
             return "Essayez de planifier cette tâche le matin pour une meilleure productivité.";
         }
     }
+    
+    /**
+     * Enregistre la complétion d'une tâche pour l'apprentissage de l'IA
+     * @param task Tâche complétée
+     */
+    public void recordTaskCompletion(Task task) {
+        if (task == null) {
+            return;
+        }
+        
+        Log.i(TAG, "Enregistrement de la complétion de la tâche: " + task.getTitle());
+        
+        // Enregistrer la complétion dans l'analyseur d'habitudes
+        aiBackendService.recordTaskCompletion(task);
+    }
+    
+    /**
+     * Enregistre le report d'une tâche pour l'apprentissage de l'IA
+     * @param task Tâche reportée
+     */
+    public void recordTaskPostponement(Task task) {
+        if (task == null) {
+            return;
+        }
+        
+        Log.i(TAG, "Enregistrement du report de la tâche: " + task.getTitle());
+        
+        // Enregistrer le report dans l'analyseur d'habitudes
+        aiBackendService.recordTaskPostponement(task);
+    }
 }

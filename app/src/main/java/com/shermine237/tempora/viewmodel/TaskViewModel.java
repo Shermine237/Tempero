@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 
 import com.shermine237.tempora.model.Task;
 import com.shermine237.tempora.repository.TaskRepository;
+import com.shermine237.tempora.service.AIService;
 
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class TaskViewModel extends AndroidViewModel {
     
     private final TaskRepository repository;
+    private final AIService aiService;
     
     // Données en cache
     private final LiveData<List<Task>> allTasks;
@@ -29,6 +31,7 @@ public class TaskViewModel extends AndroidViewModel {
     public TaskViewModel(@NonNull Application application) {
         super(application);
         repository = new TaskRepository(application);
+        aiService = new AIService(application); // Ajout de l'initialisation de AIService
         
         // Initialiser les données en cache
         allTasks = repository.getAllTasks();
@@ -98,8 +101,30 @@ public class TaskViewModel extends AndroidViewModel {
         repository.deleteAll();
     }
     
+    /**
+     * Marque une tâche comme complétée
+     * @param task Tâche à compléter
+     */
     public void completeTask(Task task) {
+        // Enregistrer la complétion pour l'apprentissage de l'IA
+        aiService.recordTaskCompletion(task);
+        
+        // Mettre à jour la tâche dans la base de données
         repository.completeTask(task);
+    }
+    
+    /**
+     * Reporte une tâche à une date ultérieure
+     * @param task Tâche à reporter
+     * @param newDate Nouvelle date planifiée
+     */
+    public void postponeTask(Task task, Date newDate) {
+        // Enregistrer le report pour l'apprentissage de l'IA
+        aiService.recordTaskPostponement(task);
+        
+        // Mettre à jour la date planifiée
+        task.setScheduledDate(newDate);
+        update(task);
     }
     
     /**
