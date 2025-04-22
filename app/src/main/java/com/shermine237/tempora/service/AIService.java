@@ -151,11 +151,11 @@ public class AIService {
                 List<Task> incompleteTasks = taskRepository.getIncompleteTasks().getValue();
                 
                 if (incompleteTasks == null || incompleteTasks.isEmpty()) {
-                    Log.i(TAG, "No incomplete tasks to schedule");
-                    // Créer quelques tâches factices pour la démonstration
-                    incompleteTasks = createDemoTasks(date);
+                    Log.i(TAG, "No incomplete tasks to schedule, asking AI to generate tasks");
+                    // Utiliser l'IA pour générer des tâches avec des données de démonstration
+                    incompleteTasks = aiBackendService.generateTasksWithDemoData(date);
                     
-                    // Enregistrer les tâches de démonstration dans la base de données
+                    // Enregistrer les tâches générées dans la base de données
                     for (Task task : incompleteTasks) {
                         taskRepository.insert(task);
                     }
@@ -322,87 +322,6 @@ public class AIService {
             Log.e(TAG, "Erreur lors de la génération d'un conseil de productivité", e);
             return "Essayez de planifier vos tâches importantes le matin pour une meilleure productivité.";
         }
-    }
-    
-    /**
-     * Crée des tâches de démonstration pour tester la génération de planning
-     * @param selectedDate La date sélectionnée sur le calendrier
-     * @return Liste de tâches de démonstration
-     */
-    private List<Task> createDemoTasks(Date selectedDate) {
-        List<Task> demoTasks = new ArrayList<>();
-        
-        // Utiliser la date sélectionnée au lieu de la date du jour
-        Date planningDate = selectedDate;
-        
-        // Log pour le débogage
-        Log.d("AIService", "Création de tâches de démonstration pour la date: " + planningDate);
-        
-        // Tâche 1: Réunion d'équipe (haute priorité)
-        Task task1 = new Task(
-            "Réunion d'équipe",
-            "Discuter des objectifs hebdomadaires",
-            planningDate,
-            4, // priorité
-            3, // difficulté
-            60, // durée estimée en minutes
-            "Travail"
-        );
-        // Marquer comme générée par l'IA et définir la date planifiée
-        task1.setAiGenerated(true);
-        task1.setApproved(false);
-        task1.setScheduledDate(planningDate);
-        demoTasks.add(task1);
-        
-        // Tâche 2: Préparer présentation (priorité moyenne)
-        Task task2 = new Task(
-            "Préparer présentation",
-            "Finaliser les slides pour la réunion client",
-            planningDate,
-            3, // priorité
-            3, // difficulté
-            90, // durée estimée en minutes
-            "Travail"
-        );
-        // Marquer comme générée par l'IA et définir la date planifiée
-        task2.setAiGenerated(true);
-        task2.setApproved(false);
-        task2.setScheduledDate(planningDate);
-        demoTasks.add(task2);
-        
-        // Tâche 3: Répondre aux emails (faible priorité)
-        Task task3 = new Task(
-            "Répondre aux emails",
-            "Traiter les emails en attente",
-            planningDate,
-            2, // priorité
-            1, // difficulté
-            45, // durée estimée en minutes
-            "Travail"
-        );
-        // Marquer comme générée par l'IA et définir la date planifiée
-        task3.setAiGenerated(true);
-        task3.setApproved(false);
-        task3.setScheduledDate(planningDate);
-        demoTasks.add(task3);
-        
-        // Tâche 4: Séance de sport (priorité moyenne)
-        Task task4 = new Task(
-            "Séance de sport",
-            "30 minutes de cardio",
-            planningDate,
-            3, // priorité
-            2, // difficulté
-            30, // durée estimée en minutes
-            "Personnel"
-        );
-        // Marquer comme générée par l'IA et définir la date planifiée
-        task4.setAiGenerated(true);
-        task4.setApproved(false);
-        task4.setScheduledDate(planningDate);
-        demoTasks.add(task4);
-        
-        return demoTasks;
     }
     
     /**

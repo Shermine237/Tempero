@@ -405,4 +405,97 @@ public class AIBackendService {
             return baseDate;
         }
     }
+    
+    /**
+     * Génère des tâches avec des données de démonstration pour une date spécifique
+     * Cette méthode utilise l'IA pour générer des tâches réalistes basées sur des données de démonstration
+     * @param date Date pour laquelle générer les tâches
+     * @return Liste de tâches générées
+     */
+    public List<com.shermine237.tempora.model.Task> generateTasksWithDemoData(Date date) {
+        Log.d(TAG, "Génération de tâches avec données de démonstration pour la date: " + date);
+        
+        List<com.shermine237.tempora.model.Task> generatedTasks = new ArrayList<>();
+        
+        // Données de démonstration pour les tâches
+        String[][] demoTaskData = {
+            // Titre, Description, Catégorie, Priorité, Difficulté, Durée
+            {"Réunion d'équipe", "Discuter des objectifs hebdomadaires", "Travail", "4", "3", "60"},
+            {"Préparer présentation", "Finaliser les slides pour la réunion client", "Travail", "3", "3", "90"},
+            {"Répondre aux emails", "Traiter les emails en attente", "Travail", "2", "1", "45"},
+            {"Séance de sport", "30 minutes de cardio", "Personnel", "3", "2", "30"},
+            {"Révision de code", "Examiner les pull requests en attente", "Travail", "3", "4", "60"},
+            {"Méditation", "Session de méditation guidée", "Personnel", "2", "1", "20"},
+            {"Planification hebdomadaire", "Organiser les tâches de la semaine", "Organisation", "4", "2", "45"},
+            {"Lecture", "Continuer le livre en cours", "Personnel", "2", "1", "60"}
+        };
+        
+        // Utiliser l'IA pour générer des tâches basées sur les données de démonstration
+        for (String[] taskData : demoTaskData) {
+            // Utiliser l'IA pour déterminer si cette tâche est pertinente pour cette date
+            if (shouldIncludeTaskForDate(taskData[0], date)) {
+                // Créer une nouvelle tâche
+                com.shermine237.tempora.model.Task task = new com.shermine237.tempora.model.Task(
+                    taskData[0],                          // Titre
+                    taskData[1],                          // Description
+                    date,                                 // Date d'échéance
+                    Integer.parseInt(taskData[3]),        // Priorité
+                    Integer.parseInt(taskData[4]),        // Difficulté
+                    Integer.parseInt(taskData[5]),        // Durée estimée
+                    taskData[2]                           // Catégorie
+                );
+                
+                // Marquer comme générée par l'IA et non approuvée
+                task.setAiGenerated(true);
+                task.setApproved(false);
+                
+                // Définir la date planifiée
+                task.setScheduledDate(date);
+                
+                // Ajouter à la liste des tâches générées
+                generatedTasks.add(task);
+                
+                Log.d(TAG, "Tâche générée: " + task.getTitle());
+            }
+        }
+        
+        return generatedTasks;
+    }
+    
+    /**
+     * Détermine si une tâche doit être incluse pour une date spécifique
+     * Cette méthode simule une décision d'IA basée sur le titre de la tâche et la date
+     * @param taskTitle Titre de la tâche
+     * @param date Date à évaluer
+     * @return true si la tâche doit être incluse, false sinon
+     */
+    private boolean shouldIncludeTaskForDate(String taskTitle, Date date) {
+        // Obtenir le jour de la semaine (1 = dimanche, 2 = lundi, ..., 7 = samedi)
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        
+        // Logique pour déterminer si une tâche doit être incluse en fonction du jour
+        if (taskTitle.contains("Réunion") && (dayOfWeek == Calendar.MONDAY || dayOfWeek == Calendar.WEDNESDAY)) {
+            return true;
+        } else if (taskTitle.contains("Préparer") && (dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.THURSDAY)) {
+            return true;
+        } else if (taskTitle.contains("Révision") && dayOfWeek == Calendar.FRIDAY) {
+            return true;
+        } else if (taskTitle.contains("Planification") && dayOfWeek == Calendar.MONDAY) {
+            return true;
+        } else if (taskTitle.contains("sport") && (dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.THURSDAY || dayOfWeek == Calendar.SATURDAY)) {
+            return true;
+        } else if (taskTitle.contains("Méditation") && (dayOfWeek == Calendar.WEDNESDAY || dayOfWeek == Calendar.SUNDAY)) {
+            return true;
+        } else if (taskTitle.contains("Lecture") && (dayOfWeek == Calendar.FRIDAY || dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY)) {
+            return true;
+        } else if (taskTitle.contains("emails")) {
+            // Les emails sont à traiter tous les jours ouvrables
+            return dayOfWeek >= Calendar.MONDAY && dayOfWeek <= Calendar.FRIDAY;
+        }
+        
+        // Par défaut, inclure la tâche avec une probabilité de 40%
+        return Math.random() < 0.4;
+    }
 }
