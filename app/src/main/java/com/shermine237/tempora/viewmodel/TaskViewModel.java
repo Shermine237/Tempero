@@ -44,6 +44,10 @@ public class TaskViewModel extends AndroidViewModel {
         return allTasks;
     }
     
+    public LiveData<List<Task>> getAllTasksIncludingUnapproved() {
+        return repository.getAllTasksIncludingUnapproved();
+    }
+    
     public LiveData<List<Task>> getIncompleteTasks() {
         return incompleteTasks;
     }
@@ -99,13 +103,21 @@ public class TaskViewModel extends AndroidViewModel {
     }
     
     /**
-     * Crée une nouvelle tâche avec les paramètres spécifiés
+     * Crée une nouvelle tâche
+     * @param title Titre de la tâche
+     * @param description Description de la tâche
+     * @param dueDate Date d'échéance
+     * @param priority Priorité (1-5)
+     * @param difficulty Difficulté (1-5)
+     * @param estimatedDuration Durée estimée en minutes
+     * @param category Catégorie de la tâche
      */
     public void createTask(String title, String description, Date dueDate, int priority, 
-                          int difficulty, int estimatedDuration, String category) {
+                         int difficulty, int estimatedDuration, String category) {
         Task newTask = new Task(title, description, dueDate, priority, difficulty, 
-                               estimatedDuration, category);
-        newTask.setApproved(true); // Les tâches créées manuellement sont approuvées par défaut
+                              estimatedDuration, category);
+        newTask.setApproved(true); // Les tâches créées manuellement sont automatiquement approuvées
+        newTask.setAiGenerated(false); // Les tâches créées manuellement ne sont pas générées par l'IA
         insert(newTask);
     }
     

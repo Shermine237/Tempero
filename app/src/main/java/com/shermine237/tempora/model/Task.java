@@ -1,6 +1,7 @@
 package com.shermine237.tempora.model;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
@@ -41,10 +42,26 @@ public class Task {
     private String recurrencePattern; // daily, weekly, monthly, etc.
     private String category; // travail, personnel, études, etc.
     private boolean approved; // Indique si la tâche a été approuvée
+    private boolean aiGenerated; // Attribut pour suivre l'origine de la tâche (IA ou manuelle)
+    
+    // Constructeur par défaut
+    public Task() {
+        this.title = "";
+        this.description = "";
+        this.scheduledDate = null;
+        this.dueDate = null;
+        this.priority = 3;
+        this.estimatedDuration = 30;
+        this.category = "Autre";
+        this.completed = false;
+        this.approved = true; // Par défaut, les tâches sont approuvées
+        this.aiGenerated = false; // Par défaut, les tâches ne sont pas générées par l'IA
+    }
     
     // Constructeur
+    @Ignore
     public Task(String title, String description, Date dueDate, int priority, int difficulty, 
-                int estimatedDuration, String category) {
+               int estimatedDuration, String category) {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
@@ -55,6 +72,7 @@ public class Task {
         this.completed = false;
         this.recurring = false;
         this.approved = false; // Par défaut, les tâches ne sont pas approuvées
+        this.aiGenerated = false; // Par défaut, les tâches ne sont pas générées par l'IA
     }
     
     // Getters et Setters
@@ -184,5 +202,13 @@ public class Task {
     
     public void setApproved(boolean approved) {
         this.approved = approved;
+    }
+    
+    public boolean isAiGenerated() {
+        return aiGenerated;
+    }
+    
+    public void setAiGenerated(boolean aiGenerated) {
+        this.aiGenerated = aiGenerated;
     }
 }

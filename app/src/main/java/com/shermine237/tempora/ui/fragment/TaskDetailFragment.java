@@ -80,20 +80,43 @@ public class TaskDetailFragment extends Fragment {
         String status = task.isCompleted() ? "Terminée" : "En cours";
         binding.textTaskStatus.setText(status);
         
+        // Statut d'approbation
+        String approvalStatus = task.isApproved() ? "Approuvée" : "En attente d'approbation";
+        binding.textTaskApprovalStatus.setText(approvalStatus);
+        binding.textTaskApprovalStatus.setTextColor(androidx.core.content.ContextCompat.getColor(
+            requireContext(), 
+            task.isApproved() ? android.R.color.holo_green_dark : android.R.color.holo_orange_dark));
+        
         // Source de la tâche (manuelle ou IA)
-        if (task.getScheduledDate() != null) {
-            binding.textTaskDetailSource.setText("Planifiée manuellement");
-            binding.textTaskDetailSource.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        String sourceText;
+        int sourceColor;
+        
+        // Utiliser l'attribut aiGenerated pour déterminer la source de la tâche
+        if (task.isAiGenerated()) {
+            sourceText = "Générée par IA";
+            sourceColor = android.R.color.holo_blue_dark;
         } else {
-            binding.textTaskDetailSource.setText("Générée par IA");
-            binding.textTaskDetailSource.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+            sourceText = "Créée manuellement";
+            sourceColor = android.R.color.holo_green_dark;
+        }
+        
+        binding.textTaskDetailSource.setText(sourceText);
+        binding.textTaskDetailSource.setTextColor(androidx.core.content.ContextCompat.getColor(
+            requireContext(), sourceColor));
+        
+        // Date planifiée
+        if (task.getScheduledDate() != null) {
+            binding.textTaskScheduledDate.setText("Date planifiée: " + dateFormat.format(task.getScheduledDate()));
+            binding.textTaskScheduledDate.setVisibility(View.VISIBLE);
+        } else {
+            binding.textTaskScheduledDate.setVisibility(View.GONE);
         }
         
         // Date d'échéance
         if (task.getDueDate() != null) {
-            binding.textTaskDueDate.setText(dateFormat.format(task.getDueDate()));
+            binding.textTaskDueDate.setText("Échéance: " + dateFormat.format(task.getDueDate()));
         } else {
-            binding.textTaskDueDate.setText("Non définie");
+            binding.textTaskDueDate.setText("Échéance: Non définie");
         }
         
         // Priorité

@@ -2,6 +2,7 @@ package com.shermine237.tempora.ui.fragment;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -227,6 +228,7 @@ public class ScheduleFragment extends Fragment implements ScheduleAdapter.OnSche
         });
         
         // Générer le planning
+        Log.d("ScheduleFragment", "Génération du planning pour la date sélectionnée: " + selectedDate);
         aiService.generateScheduleForDate(selectedDate);
     }
 

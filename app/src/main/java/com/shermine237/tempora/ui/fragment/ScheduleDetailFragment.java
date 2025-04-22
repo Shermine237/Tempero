@@ -144,14 +144,17 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
         Log.d("ScheduleDetailFragment", "Nombre total d'éléments dans le planning: " + items.size());
         
         // Récupérer toutes les tâches non approuvées
-        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+        taskViewModel.getAllTasksIncludingUnapproved().observe(getViewLifecycleOwner(), tasks -> {
             List<Task> unapprovedTasks = new ArrayList<>();
             
             // Filtrer pour ne garder que les tâches non approuvées
             for (Task task : tasks) {
                 if (!task.isApproved()) {
                     unapprovedTasks.add(task);
-                    Log.d("ScheduleDetailFragment", "Tâche non approuvée trouvée: " + task.getTitle() + ", ID: " + task.getId());
+                    Log.d("ScheduleDetailFragment", "Tâche non approuvée trouvée: " + task.getTitle() + 
+                          ", ID: " + task.getId() + 
+                          ", Date planifiée: " + (task.getScheduledDate() != null ? task.getScheduledDate() : "null") + 
+                          ", Date d'échéance: " + (task.getDueDate() != null ? task.getDueDate() : "null"));
                 }
             }
             
@@ -192,9 +195,27 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
                 for (int i = 0; i < selectedItems.size(); i++) {
                     int index = selectedItems.get(i);
                     Task task = unapprovedTasks.get(index);
+                    
+                    // Log avant la modification
+                    Log.d("ScheduleDetailFragment", "AVANT approbation - Tâche: " + task.getTitle() + 
+                          ", ID: " + task.getId() + 
+                          ", Générée par IA: " + task.isAiGenerated() + 
+                          ", Approuvée: " + task.isApproved() + 
+                          ", Date planifiée: " + (task.getScheduledDate() != null ? task.getScheduledDate() : "null") + 
+                          ", Date d'échéance: " + (task.getDueDate() != null ? task.getDueDate() : "null"));
+                    
                     task.setApproved(true);
+                    // Nous ne modifions pas l'attribut aiGenerated pour préserver l'origine de la tâche
+                    
+                    // Log après la modification
+                    Log.d("ScheduleDetailFragment", "APRÈS approbation - Tâche: " + task.getTitle() + 
+                          ", ID: " + task.getId() + 
+                          ", Générée par IA: " + task.isAiGenerated() + 
+                          ", Approuvée: " + task.isApproved() + 
+                          ", Date planifiée: " + (task.getScheduledDate() != null ? task.getScheduledDate() : "null") + 
+                          ", Date d'échéance: " + (task.getDueDate() != null ? task.getDueDate() : "null"));
+                    
                     taskViewModel.update(task);
-                    Log.d("ScheduleDetailFragment", "Tâche approuvée: " + task.getTitle());
                 }
                 
                 Toast.makeText(requireContext(), "Tâches approuvées", Toast.LENGTH_SHORT).show();

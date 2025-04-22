@@ -10,6 +10,7 @@ public class Task {
     private String title;
     private String description;
     private Date dueDate;
+    private Date scheduledDate; // Date planifiée
     private int priority; // 1-5, 5 étant la plus haute priorité
     private int difficulty; // 1-5, 5 étant la plus difficile
     private int estimatedDuration; // en minutes
@@ -23,6 +24,7 @@ public class Task {
         this.title = "";
         this.description = "";
         this.dueDate = null;
+        this.scheduledDate = null;
         this.priority = 3;
         this.difficulty = 3;
         this.estimatedDuration = 30;
@@ -45,6 +47,7 @@ public class Task {
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
+        this.scheduledDate = null;
         this.priority = priority;
         this.difficulty = difficulty;
         this.estimatedDuration = estimatedDuration;
@@ -84,6 +87,14 @@ public class Task {
     
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
+    }
+    
+    public Date getScheduledDate() {
+        return scheduledDate;
+    }
+    
+    public void setScheduledDate(Date scheduledDate) {
+        this.scheduledDate = scheduledDate;
     }
     
     public int getPriority() {

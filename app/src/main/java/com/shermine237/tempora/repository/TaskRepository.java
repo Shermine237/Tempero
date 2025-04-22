@@ -1,6 +1,7 @@
 package com.shermine237.tempora.repository;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -42,6 +43,10 @@ public class TaskRepository {
     
     public LiveData<List<Task>> getAllTasks() {
         return allTasks;
+    }
+    
+    public LiveData<List<Task>> getAllTasksIncludingUnapproved() {
+        return taskDao.getAllTasksIncludingUnapproved();
     }
     
     public LiveData<List<Task>> getIncompleteTasks() {
@@ -98,6 +103,14 @@ public class TaskRepository {
     }
     
     public void update(Task task) {
+        // Ajouter des logs pour le débogage
+        Log.d("TaskRepository", "Mise à jour de la tâche: " + task.getTitle() + 
+              ", ID: " + task.getId() + 
+              ", Générée par IA: " + task.isAiGenerated() + 
+              ", Approuvée: " + task.isApproved() + 
+              ", Date planifiée: " + (task.getScheduledDate() != null ? task.getScheduledDate() : "null") + 
+              ", Date d'échéance: " + (task.getDueDate() != null ? task.getDueDate() : "null"));
+        
         executorService.execute(() -> {
             taskDao.update(task);
         });

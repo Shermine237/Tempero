@@ -202,6 +202,11 @@ public class AIBackendService {
         // Définir directement la date d'échéance
         backendTask.setDueDate(androidTask.getDueDate());
         
+        // Définir directement la date planifiée si elle existe
+        if (androidTask.getScheduledDate() != null) {
+            backendTask.setScheduledDate(androidTask.getScheduledDate());
+        }
+        
         return backendTask;
     }
     
@@ -274,6 +279,9 @@ public class AIBackendService {
      * @param scheduleDate Date du planning
      */
     private void updateTaskDates(int taskId, Date scheduleDate) {
+        // Log pour le débogage
+        Log.d("AIBackendService", "Mise à jour des dates de la tâche " + taskId + " avec la date de planning: " + scheduleDate);
+        
         // Créer un calendrier pour la date du planning (sans l'heure)
         Calendar scheduleCal = Calendar.getInstance();
         scheduleCal.setTime(scheduleDate);
@@ -289,6 +297,9 @@ public class AIBackendService {
         dueCal.set(Calendar.MINUTE, 59);
         dueCal.set(Calendar.SECOND, 59);
         dueCal.set(Calendar.MILLISECOND, 999);
+        
+        // Log pour le débogage
+        Log.d("AIBackendService", "Date planifiée: " + scheduleCal.getTime() + ", Date d'échéance: " + dueCal.getTime());
         
         // Mettre à jour la tâche dans un thread séparé
         new Thread(() -> {
@@ -309,16 +320,17 @@ public class AIBackendService {
                                 task.setScheduledDate(scheduleCal.getTime());
                                 task.setDueDate(dueCal.getTime());
                                 task.setApproved(false); // Par défaut, les tâches générées par l'IA ne sont pas approuvées
+                                task.setAiGenerated(true); // Marquer la tâche comme générée par l'IA
                                 
                                 // Enregistrer la tâche mise à jour
                                 taskRepository.update(task);
                                 
                                 Log.i(TAG, "Task " + taskId + " updated with scheduled date " + 
                                       scheduleCal.getTime() + " and due date " + dueCal.getTime());
+                                
+                                // Supprimer l'observer pour éviter les fuites de mémoire
+                                taskRepository.getTaskById(taskId).removeObserver(this);
                             }
-                            
-                            // Se désabonner après la mise à jour
-                            taskRepository.getTaskById(taskId).removeObserver(this);
                         }
                     });
                 });

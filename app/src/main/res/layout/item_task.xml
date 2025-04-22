@@ -51,6 +51,18 @@
             tools:text="Échéance: 20/04/2025" />
 
         <TextView
+            android:id="@+id/text_task_scheduled_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:drawablePadding="4dp"
+            android:textSize="12sp"
+            android:textColor="@android:color/holo_blue_dark"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_task_due_date"
+            tools:text="Date planifiée: 20/04/2025" />
+
+        <TextView
             android:id="@+id/text_task_priority"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,7 +92,7 @@
             android:textSize="12sp"
             android:textStyle="italic"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_task_due_date"
+            app:layout_constraintTop_toBottomOf="@+id/text_task_scheduled_date"
             tools:text="Planifiée manuellement" />
 
         <CheckBox

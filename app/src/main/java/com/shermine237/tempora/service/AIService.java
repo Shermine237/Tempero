@@ -126,6 +126,9 @@ public class AIService {
         // Indiquer que la génération commence
         isGenerating.postValue(true);
         
+        // Log pour le débogage
+        Log.d("AIService", "Génération du planning pour la date: " + date);
+        
         executor.execute(() -> {
             try {
                 Log.i(TAG, "Starting schedule generation for date: " + date);
@@ -150,7 +153,7 @@ public class AIService {
                 if (incompleteTasks == null || incompleteTasks.isEmpty()) {
                     Log.i(TAG, "No incomplete tasks to schedule");
                     // Créer quelques tâches factices pour la démonstration
-                    incompleteTasks = createDemoTasks();
+                    incompleteTasks = createDemoTasks(date);
                     
                     // Enregistrer les tâches de démonstration dans la base de données
                     for (Task task : incompleteTasks) {
@@ -323,60 +326,80 @@ public class AIService {
     
     /**
      * Crée des tâches de démonstration pour tester la génération de planning
+     * @param selectedDate La date sélectionnée sur le calendrier
+     * @return Liste de tâches de démonstration
      */
-    private List<Task> createDemoTasks() {
+    private List<Task> createDemoTasks(Date selectedDate) {
         List<Task> demoTasks = new ArrayList<>();
         
-        // Obtenir la date du jour
-        Calendar calendar = Calendar.getInstance();
-        Date today = calendar.getTime();
+        // Utiliser la date sélectionnée au lieu de la date du jour
+        Date planningDate = selectedDate;
+        
+        // Log pour le débogage
+        Log.d("AIService", "Création de tâches de démonstration pour la date: " + planningDate);
         
         // Tâche 1: Réunion d'équipe (haute priorité)
         Task task1 = new Task(
             "Réunion d'équipe",
             "Discuter des objectifs hebdomadaires",
-            today,
+            planningDate,
             4, // priorité
             3, // difficulté
             60, // durée estimée en minutes
             "Travail"
         );
+        // Marquer comme générée par l'IA et définir la date planifiée
+        task1.setAiGenerated(true);
+        task1.setApproved(false);
+        task1.setScheduledDate(planningDate);
         demoTasks.add(task1);
         
         // Tâche 2: Préparer présentation (priorité moyenne)
         Task task2 = new Task(
             "Préparer présentation",
             "Finaliser les slides pour la réunion client",
-            today,
+            planningDate,
             3, // priorité
             3, // difficulté
             90, // durée estimée en minutes
             "Travail"
         );
+        // Marquer comme générée par l'IA et définir la date planifiée
+        task2.setAiGenerated(true);
+        task2.setApproved(false);
+        task2.setScheduledDate(planningDate);
         demoTasks.add(task2);
         
         // Tâche 3: Répondre aux emails (faible priorité)
         Task task3 = new Task(
             "Répondre aux emails",
             "Traiter les emails en attente",
-            today,
+            planningDate,
             2, // priorité
             1, // difficulté
             45, // durée estimée en minutes
             "Travail"
         );
+        // Marquer comme générée par l'IA et définir la date planifiée
+        task3.setAiGenerated(true);
+        task3.setApproved(false);
+        task3.setScheduledDate(planningDate);
         demoTasks.add(task3);
         
         // Tâche 4: Séance de sport (priorité moyenne)
         Task task4 = new Task(
             "Séance de sport",
             "30 minutes de cardio",
-            today,
+            planningDate,
             3, // priorité
             2, // difficulté
             30, // durée estimée en minutes
             "Personnel"
         );
+        // Marquer comme générée par l'IA et définir la date planifiée
+        task4.setAiGenerated(true);
+        task4.setApproved(false);
+        task4.setScheduledDate(planningDate);
         demoTasks.add(task4);
         
         return demoTasks;

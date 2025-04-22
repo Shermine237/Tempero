@@ -121,7 +121,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         tasksByDate.put("Demain", new ArrayList<>());
         tasksByDate.put("Cette semaine", new ArrayList<>());
         tasksByDate.put("Plus tard", new ArrayList<>());
-        tasksByDate.put("Planifiées", new ArrayList<>());
+        tasksByDate.put("Sans date planifiée", new ArrayList<>());
         tasksByDate.put("Sans date", new ArrayList<>());
         
         // Obtenir les dates de référence
@@ -152,19 +152,27 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         
         // Répartir les tâches dans les catégories
         for (Task task : tasks) {
+            // Ajouter un log pour le débogage
+            System.out.println("Tâche: " + task.getTitle() + 
+                ", Date planifiée: " + (task.getScheduledDate() != null ? task.getScheduledDate() : "null") + 
+                ", Date d'échéance: " + (task.getDueDate() != null ? task.getDueDate() : "null"));
+            
             // Vérifier si la tâche a une date planifiée
-            if (task.getScheduledDate() != null) {
-                tasksByDate.get("Planifiées").add(task);
+            if (task.getScheduledDate() == null) {
+                // Si la tâche a une date d'échéance mais pas de date planifiée
+                if (task.getDueDate() != null) {
+                    tasksByDate.get("Sans date planifiée").add(task);
+                    System.out.println("Ajoutée à: Sans date planifiée");
+                } else {
+                    // Si la tâche n'a ni date planifiée ni date d'échéance
+                    tasksByDate.get("Sans date").add(task);
+                    System.out.println("Ajoutée à: Sans date");
+                }
                 continue;
             }
             
-            // Utiliser la date d'échéance pour les autres catégories
-            Date dateToUse = task.getDueDate();
-            
-            if (dateToUse == null) {
-                tasksByDate.get("Sans date").add(task);
-                continue;
-            }
+            // Utiliser la date planifiée pour les autres catégories
+            Date dateToUse = task.getScheduledDate();
             
             // Normaliser la date (enlever l'heure)
             Calendar dateCal = Calendar.getInstance();
@@ -176,7 +184,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             long dateMillis = dateCal.getTimeInMillis();
             
             // Ajouter un log pour le débogage
-            System.out.println("Tâche: " + task.getTitle() + ", Date: " + new Date(dateMillis));
+            System.out.println("Tâche: " + task.getTitle() + ", Date utilisée: " + new Date(dateMillis));
             
             // Classer la tâche selon sa date
             if (dateMillis < todayMillis) {
@@ -253,6 +261,15 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding.textTaskTitle.setText(task.getTitle());
             binding.textTaskDescription.setText(task.getDescription());
             
+            // Afficher la date planifiée
+            if (task.getScheduledDate() != null) {
+                binding.textTaskScheduledDate.setText("Date planifiée: " + dateFormat.format(task.getScheduledDate()));
+                binding.textTaskScheduledDate.setVisibility(View.VISIBLE);
+            } else {
+                binding.textTaskScheduledDate.setVisibility(View.GONE);
+            }
+            
+            // Afficher la date d'échéance
             if (task.getDueDate() != null) {
                 binding.textTaskDueDate.setText("Échéance: " + dateFormat.format(task.getDueDate()));
             } else {
@@ -284,14 +301,17 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding.textTaskCategory.setText("Catégorie: " + task.getCategory());
             
             // Afficher la source de la tâche (manuelle ou IA)
-            if (task.getScheduledDate() != null) {
-                binding.textTaskSource.setText("Planifiée manuellement");
-                binding.textTaskSource.setTextColor(binding.getRoot().getContext().getResources().getColor(android.R.color.holo_green_dark));
-            } else {
+            // Utiliser l'attribut aiGenerated pour déterminer la source de la tâche
+            if (task.isAiGenerated()) {
                 binding.textTaskSource.setText("Générée par IA");
-                binding.textTaskSource.setTextColor(binding.getRoot().getContext().getResources().getColor(android.R.color.holo_blue_dark));
+                binding.textTaskSource.setTextColor(androidx.core.content.ContextCompat.getColor(
+                    binding.getRoot().getContext(), android.R.color.holo_blue_dark));
+            } else {
+                binding.textTaskSource.setText("Créée manuellement");
+                binding.textTaskSource.setTextColor(androidx.core.content.ContextCompat.getColor(
+                    binding.getRoot().getContext(), android.R.color.holo_green_dark));
             }
-            binding.textTaskSource.setVisibility(android.view.View.VISIBLE);
+            binding.textTaskSource.setVisibility(View.VISIBLE);
             
             binding.checkboxTaskCompleted.setChecked(task.isCompleted());
             
