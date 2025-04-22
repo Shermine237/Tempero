@@ -40,7 +40,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public TaskAdapter(List<Task> tasks, OnTaskClickListener listener) {
         this.listener = listener;
-        processTasksIntoSections(tasks);
+        updateTasks(tasks);
     }
 
     @NonNull
@@ -76,8 +76,20 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return items.get(position) instanceof String ? TYPE_HEADER : TYPE_TASK;
     }
 
-    public void updateTasks(List<Task> newTasks) {
-        processTasksIntoSections(newTasks);
+    public void updateTasks(List<Task> tasks) {
+        if (tasks != null) {
+            // Filtrer les tâches non approuvées
+            List<Task> filteredTasks = new ArrayList<>();
+            for (Task task : tasks) {
+                if (task.isApproved()) {
+                    filteredTasks.add(task);
+                }
+            }
+            
+            processTasksIntoSections(filteredTasks);
+        } else {
+            items = new ArrayList<>();
+        }
         notifyDataSetChanged();
     }
 
@@ -94,6 +106,8 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 if (date1 == null && date2 == null) return 0;
                 if (date1 == null) return 1; // Null après non-null
                 if (date2 == null) return -1; // Non-null avant null
+                
+                // Comparer les dates
                 return date1.compareTo(date2);
             }
         });

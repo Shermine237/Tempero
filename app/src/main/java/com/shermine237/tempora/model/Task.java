@@ -40,6 +40,7 @@ public class Task {
     private boolean recurring;
     private String recurrencePattern; // daily, weekly, monthly, etc.
     private String category; // travail, personnel, études, etc.
+    private boolean approved; // Indique si la tâche a été approuvée
     
     // Constructeur
     public Task(String title, String description, Date dueDate, int priority, int difficulty, 
@@ -53,6 +54,7 @@ public class Task {
         this.category = category;
         this.completed = false;
         this.recurring = false;
+        this.approved = false; // Par défaut, les tâches ne sont pas approuvées
     }
     
     // Getters et Setters
@@ -174,5 +176,13 @@ public class Task {
     
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    public boolean isApproved() {
+        return approved;
+    }
+    
+    public void setApproved(boolean approved) {
+        this.approved = approved;
     }
 }

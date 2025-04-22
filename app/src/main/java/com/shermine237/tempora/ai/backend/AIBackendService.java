@@ -237,6 +237,17 @@ public class AIBackendService {
                     startTime,
                     endTime
                 );
+                
+                // Log pour le débogage
+                Log.d("AIBackendService", "Création d'un élément de planning de type tâche: " + 
+                      backendItem.getTitle() + ", TaskId: " + backendItem.getTaskId());
+                
+                // Mettre à jour la tâche avec les dates appropriées
+                if (backendItem.getTaskId() > 0) {
+                    updateTaskDates(backendItem.getTaskId(), backendSchedule.getDate());
+                } else {
+                    Log.w("AIBackendService", "TaskId invalide pour la tâche: " + backendItem.getTitle());
+                }
             } else {
                 // Pour les autres types (pause, repas, etc.)
                 androidItem = new com.shermine237.tempora.model.ScheduleItem(
@@ -255,6 +266,66 @@ public class AIBackendService {
         }
         
         return androidSchedule;
+    }
+    
+    /**
+     * Met à jour les dates d'une tâche générée par l'IA
+     * @param taskId ID de la tâche
+     * @param scheduleDate Date du planning
+     */
+    private void updateTaskDates(int taskId, Date scheduleDate) {
+        // Créer un calendrier pour la date du planning (sans l'heure)
+        Calendar scheduleCal = Calendar.getInstance();
+        scheduleCal.setTime(scheduleDate);
+        scheduleCal.set(Calendar.HOUR_OF_DAY, 0);
+        scheduleCal.set(Calendar.MINUTE, 0);
+        scheduleCal.set(Calendar.SECOND, 0);
+        scheduleCal.set(Calendar.MILLISECOND, 0);
+        
+        // Créer un calendrier pour la date d'échéance (même jour à minuit)
+        Calendar dueCal = Calendar.getInstance();
+        dueCal.setTime(scheduleDate);
+        dueCal.set(Calendar.HOUR_OF_DAY, 23);
+        dueCal.set(Calendar.MINUTE, 59);
+        dueCal.set(Calendar.SECOND, 59);
+        dueCal.set(Calendar.MILLISECOND, 999);
+        
+        // Mettre à jour la tâche dans un thread séparé
+        new Thread(() -> {
+            try {
+                // Récupérer le repository de tâches
+                com.shermine237.tempora.repository.TaskRepository taskRepository = 
+                    new com.shermine237.tempora.repository.TaskRepository(application);
+                
+                // Utiliser le handler pour exécuter le code sur le thread principal
+                android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                handler.post(() -> {
+                    // Observer la tâche
+                    taskRepository.getTaskById(taskId).observeForever(new androidx.lifecycle.Observer<com.shermine237.tempora.model.Task>() {
+                        @Override
+                        public void onChanged(com.shermine237.tempora.model.Task task) {
+                            if (task != null) {
+                                // Mettre à jour la tâche
+                                task.setScheduledDate(scheduleCal.getTime());
+                                task.setDueDate(dueCal.getTime());
+                                task.setApproved(false); // Par défaut, les tâches générées par l'IA ne sont pas approuvées
+                                
+                                // Enregistrer la tâche mise à jour
+                                taskRepository.update(task);
+                                
+                                Log.i(TAG, "Task " + taskId + " updated with scheduled date " + 
+                                      scheduleCal.getTime() + " and due date " + dueCal.getTime());
+                            }
+                            
+                            // Se désabonner après la mise à jour
+                            taskRepository.getTaskById(taskId).removeObserver(this);
+                        }
+                    });
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating task dates", e);
+            }
+        }).start();
     }
     
     /**

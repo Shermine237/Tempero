@@ -170,6 +170,12 @@ public class AIService {
                 com.shermine237.tempora.ai.backend.Schedule backendSchedule = 
                     aiBackendService.generateSchedule(date, backendTasks);
                 
+                // Log pour le débogage
+                Log.d("AIService", "Planning backend généré avec " + backendSchedule.getItems().size() + " éléments");
+                for (com.shermine237.tempora.ai.backend.ScheduleItem item : backendSchedule.getItems()) {
+                    Log.d("AIService", "Élément backend: " + item.getTitle() + ", Type: " + item.getType() + ", TaskId: " + item.getTaskId());
+                }
+                
                 // Convertir le planning backend en planning Android
                 Schedule schedule = aiBackendService.convertBackendScheduleToAndroidSchedule(backendSchedule);
                 

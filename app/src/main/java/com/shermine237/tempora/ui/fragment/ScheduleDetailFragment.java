@@ -1,6 +1,7 @@
 package com.shermine237.tempora.ui.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +18,10 @@ import com.shermine237.tempora.R;
 import com.shermine237.tempora.databinding.FragmentScheduleDetailBinding;
 import com.shermine237.tempora.model.Schedule;
 import com.shermine237.tempora.model.ScheduleItem;
+import com.shermine237.tempora.model.Task;
 import com.shermine237.tempora.ui.adapter.ScheduleDetailAdapter;
 import com.shermine237.tempora.viewmodel.ScheduleViewModel;
+import com.shermine237.tempora.viewmodel.TaskViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +33,7 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
 
     private FragmentScheduleDetailBinding binding;
     private ScheduleViewModel scheduleViewModel;
+    private TaskViewModel taskViewModel;
     private ScheduleDetailAdapter scheduleAdapter;
     private Schedule currentSchedule;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd MMMM yyyy", Locale.FRENCH);
@@ -46,6 +50,7 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
         
         // Initialiser le ViewModel
         scheduleViewModel = new ViewModelProvider(this).get(ScheduleViewModel.class);
+        taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         
         // Configurer le RecyclerView
         setupRecyclerView();
@@ -123,13 +128,83 @@ public class ScheduleDetailFragment extends Fragment implements ScheduleDetailAd
 
     private void approveSchedule() {
         if (currentSchedule == null) {
+            Toast.makeText(requireContext(), "Aucun planning à approuver", Toast.LENGTH_SHORT).show();
             return;
         }
         
-        scheduleViewModel.approveSchedule(currentSchedule);
-        Toast.makeText(requireContext(), "Planning approuvé", Toast.LENGTH_SHORT).show();
-        binding.buttonApproveSchedule.setText("Planning approuvé");
-        binding.buttonApproveSchedule.setEnabled(false);
+        // Récupérer les tâches du planning
+        List<ScheduleItem> items = currentSchedule.getItems();
+        
+        if (items == null || items.isEmpty()) {
+            Toast.makeText(requireContext(), "Le planning est vide", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Log pour le débogage
+        Log.d("ScheduleDetailFragment", "Nombre total d'éléments dans le planning: " + items.size());
+        
+        // Récupérer toutes les tâches non approuvées
+        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+            List<Task> unapprovedTasks = new ArrayList<>();
+            
+            // Filtrer pour ne garder que les tâches non approuvées
+            for (Task task : tasks) {
+                if (!task.isApproved()) {
+                    unapprovedTasks.add(task);
+                    Log.d("ScheduleDetailFragment", "Tâche non approuvée trouvée: " + task.getTitle() + ", ID: " + task.getId());
+                }
+            }
+            
+            if (unapprovedTasks.isEmpty()) {
+                Toast.makeText(requireContext(), "Aucune tâche à approuver", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Créer la liste des tâches à afficher dans la boîte de dialogue
+            String[] taskNames = new String[unapprovedTasks.size()];
+            boolean[] checkedItems = new boolean[unapprovedTasks.size()];
+            final List<Integer> selectedItems = new ArrayList<>();
+            
+            // Remplir les tableaux
+            for (int i = 0; i < unapprovedTasks.size(); i++) {
+                Task task = unapprovedTasks.get(i);
+                taskNames[i] = task.getTitle();
+                checkedItems[i] = true; // Toutes les tâches sont sélectionnées par défaut
+                selectedItems.add(i);
+            }
+            
+            // Créer la boîte de dialogue
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
+            builder.setTitle("Sélectionnez les tâches à approuver");
+            
+            // Ajouter les cases à cocher
+            builder.setMultiChoiceItems(taskNames, checkedItems, (dialog, which, isChecked) -> {
+                if (isChecked) {
+                    selectedItems.add(which);
+                } else {
+                    selectedItems.remove(Integer.valueOf(which));
+                }
+            });
+            
+            // Ajouter les boutons
+            builder.setPositiveButton("Approuver", (dialog, which) -> {
+                // Approuver les tâches sélectionnées
+                for (int i = 0; i < selectedItems.size(); i++) {
+                    int index = selectedItems.get(i);
+                    Task task = unapprovedTasks.get(index);
+                    task.setApproved(true);
+                    taskViewModel.update(task);
+                    Log.d("ScheduleDetailFragment", "Tâche approuvée: " + task.getTitle());
+                }
+                
+                Toast.makeText(requireContext(), "Tâches approuvées", Toast.LENGTH_SHORT).show();
+            });
+            
+            builder.setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss());
+            
+            // Afficher la boîte de dialogue
+            builder.create().show();
+        });
     }
 
     @Override

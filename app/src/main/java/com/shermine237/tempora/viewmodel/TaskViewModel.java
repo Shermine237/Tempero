@@ -105,6 +105,7 @@ public class TaskViewModel extends AndroidViewModel {
                           int difficulty, int estimatedDuration, String category) {
         Task newTask = new Task(title, description, dueDate, priority, difficulty, 
                                estimatedDuration, category);
+        newTask.setApproved(true); // Les tâches créées manuellement sont approuvées par défaut
         insert(newTask);
     }
     
@@ -117,6 +118,7 @@ public class TaskViewModel extends AndroidViewModel {
         Task newTask = new Task(title, description, dueDate, priority, difficulty, 
                                estimatedDuration, category);
         newTask.setScheduledDate(scheduledDate);
+        newTask.setApproved(true); // Les tâches créées manuellement sont approuvées par défaut
         insert(newTask);
     }
     
