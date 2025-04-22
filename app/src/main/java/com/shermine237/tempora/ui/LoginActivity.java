@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
@@ -270,8 +271,12 @@ public class LoginActivity extends AppCompatActivity {
         // Afficher un message de succès
         Toast.makeText(this, "Connexion réussie ! Bienvenue, " + userProfile.getName(), Toast.LENGTH_SHORT).show();
         
-        // Rediriger vers l'activité principale
-        proceedToMainActivity();
+        // Ajouter un délai court avant de rediriger vers l'activité principale
+        // pour s'assurer que les préférences sont bien enregistrées
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            // Rediriger vers l'activité principale
+            proceedToMainActivity();
+        }, 500); // Délai de 500ms
     }
     
     /**

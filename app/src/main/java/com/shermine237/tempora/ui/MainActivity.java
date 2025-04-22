@@ -3,6 +3,7 @@ package com.shermine237.tempora.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -190,6 +191,17 @@ public class MainActivity extends AppCompatActivity {
         if (!isAppActive() && !isExpired) {
             // Marquer l'application comme active pour éviter des problèmes futurs
             setAppActive(true);
+            
+            // Mettre à jour le temps de dernière activité
+            updateLastActiveTime();
+            
+            // Log pour le débogage
+            Log.d("MainActivity", "Application inactive mais session non expirée, activation de l'application");
+        }
+        
+        // Log pour le débogage
+        if (isExpired) {
+            Log.d("MainActivity", "Session expirée après " + ((currentTime - lastActiveTime) / 1000 / 60) + " minutes d'inactivité");
         }
         
         return isExpired;
