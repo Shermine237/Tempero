@@ -13,6 +13,8 @@
         app:mcv_selectionColor="?attr/colorPrimary"
         app:mcv_showOtherDates="all"
         app:mcv_calendarMode="month"
+        app:mcv_dateTextAppearance="@style/CalendarDateTextAppearance"
+        app:mcv_weekDayTextAppearance="@style/CalendarWeekTextAppearance"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

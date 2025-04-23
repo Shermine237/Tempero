@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Couleurs spécifiques pour le mode sombre -->
+    <color name="calendar_text_color">@color/white</color>
+    <color name="calendar_background_color">@android:color/transparent</color>
+</resources>
