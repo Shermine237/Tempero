@@ -1,75 +1,244 @@
 @startuml
 package "Model" {
   class Task {
+    -id: int
     -title: String
     -description: String
     -dueDate: Date
+    -scheduledDate: Date
     -priority: int
+    -difficulty: int
+    -estimatedDuration: int
     -category: String
     -completed: boolean
-    +getTitle()
-    +setTitle()
-    +complete()
-    +postpone()
+    -approved: boolean
+    +getTitle(): String
+    +setTitle(String)
+    +getDescription(): String
+    +setDescription(String)
+    +getDueDate(): Date
+    +setDueDate(Date)
+    +getScheduledDate(): Date
+    +setScheduledDate(Date)
+    +isCompleted(): boolean
+    +setCompleted(boolean)
+    +isApproved(): boolean
+    +setApproved(boolean)
   }
   
   class UserProfile {
+    -id: int
     -name: String
-    -preferences: UserPreferences
-    -workHours: WorkHours
-    +updatePreferences()
-    +getWorkHours()
+    -email: String
+    -preferredWorkStartHour: int
+    -preferredWorkEndHour: int
+    -workHours: List<WorkHours>
+    -workDays: List<Integer>
+    -customCategories: List<String>
+    -workSessionDuration: int
+    -shortBreakDuration: int
+    -longBreakDuration: int
+    -workSessionsBeforeLongBreak: int
+    -includeBreakfast: boolean
+    -includeLunch: boolean
+    -includeDinner: boolean
+    -includeBreaks: boolean
+    +getName(): String
+    +setName(String)
+    +getEmail(): String
+    +setEmail(String)
+    +getWorkHours(): List<WorkHours>
+    +setWorkHours(List<WorkHours>)
+    +getCustomCategories(): List<String>
+    +setCustomCategories(List<String>)
   }
   
   class Schedule {
+    -id: int
     -date: Date
     -items: List<ScheduleItem>
-    +addItem()
-    +removeItem()
-    +optimize()
+    -approved: boolean
+    -completed: boolean
+    -productivityScore: int
+    +getDate(): Date
+    +setDate(Date)
+    +getItems(): List<ScheduleItem>
+    +setItems(List<ScheduleItem>)
+    +isApproved(): boolean
+    +setApproved(boolean)
+    +isCompleted(): boolean
+    +setCompleted(boolean)
+  }
+
+  class ScheduleItem {
+    -startTime: Date
+    -endTime: Date
+    -type: String
+    -title: String
+    -description: String
+    +getStartTime(): Date
+    +setStartTime(Date)
+    +getEndTime(): Date
+    +setEndTime(Date)
+  }
+}
+
+package "Repository" {
+  class TaskRepository {
+    -taskDao: TaskDao
+    -allTasks: LiveData<List<Task>>
+    -incompleteTasks: LiveData<List<Task>>
+    -completedTasks: LiveData<List<Task>>
+    +insert(Task)
+    +update(Task)
+    +delete(Task)
+    +getAllTasks(): LiveData<List<Task>>
+    +getIncompleteTasks(): LiveData<List<Task>>
+  }
+
+  class UserProfileRepository {
+    -userProfileDao: UserProfileDao
+    -userProfile: LiveData<UserProfile>
+    +insert(UserProfile)
+    +update(UserProfile)
+    +getUserProfile(): LiveData<UserProfile>
+    +restoreFromBackupIfNeeded(): boolean
+  }
+
+  class ScheduleRepository {
+    -scheduleDao: ScheduleDao
+    -allSchedules: LiveData<List<Schedule>>
+    -approvedSchedules: LiveData<List<Schedule>>
+    +insert(Schedule)
+    +update(Schedule)
+    +delete(Schedule)
+    +getAllSchedules(): LiveData<List<Schedule>>
+  }
+}
+
+package "ViewModel" {
+  class TaskViewModel {
+    -repository: TaskRepository
+    -aiService: AIService
+    -allTasks: LiveData<List<Task>>
+    -incompleteTasks: LiveData<List<Task>>
+    +getAllTasks(): LiveData<List<Task>>
+    +createTask(String, String, Date, int, int, int, String)
+    +completeTask(Task)
+    +deleteTask(Task)
+  }
+
+  class UserProfileViewModel {
+    -repository: UserProfileRepository
+    -userProfile: LiveData<UserProfile>
+    +getUserProfile(): LiveData<UserProfile>
+    +update(UserProfile)
+    +updateWorkHours(UserProfile, List<WorkHours>)
+    +updateCustomCategories(UserProfile, List<String>)
+  }
+
+  class ScheduleViewModel {
+    -repository: ScheduleRepository
+    -allSchedules: LiveData<List<Schedule>>
+    -approvedSchedules: LiveData<List<Schedule>>
+    -completedSchedules: LiveData<List<Schedule>>
+    +getAllSchedules(): LiveData<List<Schedule>>
+    +createSchedule(Date, List<ScheduleItem>)
+    +approveSchedule(Schedule)
+    +completeSchedule(Schedule, int)
+  }
+}
+
+package "Database" {
+  class TemporaDatabase {
+    -INSTANCE: TemporaDatabase
+    +taskDao(): TaskDao
+    +userProfileDao(): UserProfileDao
+    +scheduleDao(): ScheduleDao
+    +getInstance(Context): TemporaDatabase
   }
 }
 
 package "AI" {
   class AIBackendService {
     -habitAnalyzer: UserHabitAnalyzer
+    -scheduler: IntelligentScheduler
+    -userPreferences: UserPreferences
+    -performanceAnalyzer: TaskPerformanceAnalyzer
     -weatherService: WeatherService
     -calendarService: CalendarIntegrationService
     -locationService: LocationService
+    -patternRecognizer: TaskPatternRecognizer
+    +recordTaskCompletion(Task)
     +generateTasks()
     +analyzeTasks()
     +predictDuration()
   }
-  
+
   class UserHabitAnalyzer {
-    -activities: List<UserActivity>
+    -userActivities: List<UserActivity>
+    -productivityByDayOfWeek: Map<Integer, Float>
+    -productivityByHourOfDay: Map<Integer, Float>
+    -productivityByTaskCategory: Map<String, Float>
+    -averageTaskDurations: Map<String, Float>
+    -taskCompletionCounts: Map<String, Integer>
     +analyzePatterns()
     +predictTaskDuration()
     +getTaskSuccessRate()
   }
-  
-  class TaskPatternRecognizer {
-    +identifyPatterns()
-    +suggestTasks()
+
+  class WeatherService {
+    -weatherForecast: Map<String, Integer>
+    +WEATHER_SUNNY: int
+    +WEATHER_CLOUDY: int
+    +WEATHER_RAINY: int
+    +WEATHER_SNOWY: int
+    +getForecast(Date): int
+  }
+
+  class UserPreferences {
+    -workStartHours: Map<Integer, Integer>
+    -workEndHours: Map<Integer, Integer>
+    -includeBreakfast: boolean
+    -includeLunch: boolean
+    -includeDinner: boolean
+    -includeBreaks: boolean
+    -breakDurationMinutes: int
+    -workDurationBeforeBreak: int
+    -scheduleDifficultTasksInMorning: boolean
+  }
+
+  class UserActivity {
+    -title: String
+    -description: String
+    -category: String
+    -startTime: Date
+    -endTime: Date
+    -productivityScore: float
+    -completed: boolean
+  }
+
+  class IntelligentScheduler {
+    -habitAnalyzer: UserHabitAnalyzer
+    -userPreferences: UserPreferences
+    +generateSchedule(List<Task>, Date): Schedule
   }
 }
 
-package "Service" {
-  class AIService {
-    -backend: AIBackendService
-    +generateSuggestions()
-    +optimizeSchedule()
-  }
-  
-  class NotificationService {
-    +sendReminder()
-    +notifyChanges()
-  }
-}
-
+' Relations
 Task "1" -- "1..*" Schedule
-UserProfile "1" -- "1" WorkHours
+Schedule "1" -- "*" ScheduleItem
+TaskRepository "1" -- "1" TemporaDatabase
+UserProfileRepository "1" -- "1" TemporaDatabase
+ScheduleRepository "1" -- "1" TemporaDatabase
+TaskViewModel "1" -- "1" TaskRepository
+UserProfileViewModel "1" -- "1" UserProfileRepository
+ScheduleViewModel "1" -- "1" ScheduleRepository
 AIBackendService "1" -- "1" UserHabitAnalyzer
-AIBackendService "1" -- "1" TaskPatternRecognizer
-AIService "1" -- "1" AIBackendService
+AIBackendService "1" -- "1" IntelligentScheduler
+AIBackendService "1" -- "1" WeatherService
+AIBackendService "1" -- "1" UserPreferences
+UserHabitAnalyzer "1" -- "*" UserActivity
+IntelligentScheduler "1" -- "1" UserHabitAnalyzer
+IntelligentScheduler "1" -- "1" UserPreferences
 @enduml
