@@ -36,7 +36,8 @@ public class LoginActivity extends AppCompatActivity {
     private static final String KEY_LAST_LOGIN = "last_login";
     private static final String KEY_AUTO_LOGIN = "auto_login";
     private static final String KEY_APP_ACTIVE = "app_active";
-    private static final long AUTO_LOGIN_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 jours en millisecondes
+    private static final String KEY_LAST_ACTIVE = "last_active";
+    private static final long AUTO_LOGIN_TIMEOUT = 30 * 60 * 1000; // 30 minutes en millisecondes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,17 +92,25 @@ public class LoginActivity extends AppCompatActivity {
         boolean autoLogin = preferences.getBoolean(KEY_AUTO_LOGIN, false);
         
         if (autoLogin) {
-            long lastLogin = preferences.getLong(KEY_LAST_LOGIN, 0);
+            long lastActiveTime = preferences.getLong(KEY_LAST_ACTIVE, 0);
             long currentTime = System.currentTimeMillis();
             
-            // Vérifier si le délai d'auto-login n'est pas expiré
-            if (currentTime - lastLogin < AUTO_LOGIN_TIMEOUT) {
+            // Vérifier si le délai d'auto-login n'est pas expiré (30 minutes)
+            if (currentTime - lastActiveTime < AUTO_LOGIN_TIMEOUT) {
+                // Mettre à jour le temps de dernière activité
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putLong(KEY_LAST_ACTIVE, currentTime);
+                editor.apply();
+                
                 return true;
             } else {
                 // Désactiver l'auto-login si le délai est expiré
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean(KEY_AUTO_LOGIN, false);
                 editor.apply();
+                
+                // Log pour le débogage
+                Log.d(TAG, "Auto-login désactivé : session expirée après " + ((currentTime - lastActiveTime) / 1000 / 60) + " minutes d'inactivité");
             }
         }
         

@@ -187,16 +187,15 @@ public class MainActivity extends AppCompatActivity {
         boolean isExpired = (currentTime - lastActiveTime) > SESSION_TIMEOUT;
         
         // Si l'application n'était pas active (après un force stop par exemple)
-        // et que la session n'est pas expirée, on considère que c'est OK
-        if (!isAppActive() && !isExpired) {
-            // Marquer l'application comme active pour éviter des problèmes futurs
+        // et que l'auto-login est activé, on considère que c'est OK
+        if (!isAppActive() && !isExpired && preferences.getBoolean(KEY_AUTO_LOGIN, false)) {
+            // Marquer l'application comme active
             setAppActive(true);
             
             // Mettre à jour le temps de dernière activité
             updateLastActiveTime();
             
-            // Log pour le débogage
-            Log.d("MainActivity", "Application inactive mais session non expirée, activation de l'application");
+            return false;
         }
         
         // Log pour le débogage
@@ -204,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "Session expirée après " + ((currentTime - lastActiveTime) / 1000 / 60) + " minutes d'inactivité");
         }
         
-        return isExpired;
+        return isExpired && !preferences.getBoolean(KEY_AUTO_LOGIN, false);
     }
     
     /**
